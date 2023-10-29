@@ -1,0 +1,184 @@
+{
+  "efxFileVersion": "1.2.0",
+  "company": "ChowDSP",
+  "effectName": "Tape Saturation",
+  "effectVersion": "1.0.0",
+  "coreVersion": "1.1.1",
+  "effectShortName": "TS",
+  "effectCategory": "Distortion",
+  "effectDescription": "A distortion effect based on the Electro-Harmonix Big Muff.",
+  "numInputs": 1,
+  "numOutputs": 1,
+  "numControls": 6,
+  "effectFilename": "ChowDSP_TapeSaturation.efx",
+  "libraryName": "ChowDSP_TapeSaturation",
+  "cppClass": "ChowDSP_TapeSaturation::TapeSaturation",
+  "cppInstBase": "_ChowDSP_TapeSaturation",
+  "constructorParams": "",
+  "type": 1,
+  "controls": [
+    {
+      "name": "Bypass",
+      "shortName": "BYP",
+      "description": "Bypasses the effect when enabled",
+      "config": [
+        0,
+        0.0,
+        1.0,
+        0.0,
+        1.0
+      ],
+      "iconOn": "gfx/Power Off.png",
+      "iconOnHeight": 136,
+      "iconOff": "gfx/Power On.png",
+      "iconOffHeight": 136,
+      "position": [
+        313,
+        840
+      ],
+      "scalingRatio": 1.0,
+      "userData": 1
+    },
+    {
+      "name": "Volume",
+      "shortName": "VOL",
+      "description": "Sets the effect output volume.",
+      "config": [
+        3,
+        0.0,
+        1.0,
+        0.5,
+        0.05000000074505806
+      ],
+      "iconPot": "gfx/knobs.png",
+      "iconPotHeight": 110,
+      "position": [
+        176,
+        115
+      ],
+      "scalingRatio": 1.350000023841858,
+      "supressValueLabel": 1,
+      "userData": 0
+    },
+    {
+      "name": "Drive",
+      "shortName": "DRV",
+      "description": "Controls the amount of distortion.",
+      "config": [
+        3,
+        0.0,
+        1.0,
+        0.75,
+        0.05000000074505806
+      ],
+      "iconPot": "gfx/knobs.png",
+      "iconPotHeight": 110,
+      "potFullRange": 1,
+      "position": [
+        445,
+        115
+      ],
+      "scalingRatio": 1.399999976158142,
+      "supressValueLabel": 1,
+      "userData": 0
+    },
+    {
+      "name": "Saturation",
+      "shortName": "SAT",
+      "description": "Controls the saturation amount.",
+      "config": [
+        3,
+        0.0,
+        1.0,
+        0.5,
+        0.05000000074505806
+      ],
+      "iconPot": "gfx/knobs.png",
+      "iconPotHeight": 110,
+      "position": [
+        176,
+        318
+      ],
+      "scalingRatio": 1.350000023841858,
+      "supressValueLabel": 1,
+      "userData": 0
+    },
+    {
+      "name": "Bias",
+      "shortName": "BIAS",
+      "description": "Controls the tape bias level",
+      "config": [
+        3,
+        0.0,
+        1.0,
+        0.5,
+        0.05000000074505806
+      ],
+      "iconPot": "gfx/knobs.png",
+      "iconPotHeight": 110,
+      "position": [
+        445,
+        318
+      ],
+      "scalingRatio": 1.350000023841858,
+      "supressValueLabel": 1,
+      "userData": 0
+    },
+    {
+      "name": "Tone",
+      "shortName": "TONE",
+      "description": "<description>",
+      "config": [
+        3,
+        -1.0,
+        1.0,
+        0.0,
+        0.05000000074505806
+      ],
+      "iconPot": "gfx/knobs.png",
+      "iconPotHeight": 110,
+      "potFullRange": 1,
+      "position": [
+        320,
+        475
+      ],
+      "scalingRatio": 1.350000023841858,
+      "supressValueLabel": 1,
+      "userData": 0
+    }
+  ],
+  "projectFileVersion": "1.0.0",
+  "companyLogo": "gfx/ChowDSP_logo.png",
+  "pedalIcon": "gfx/Muff Drive Icon.png",
+  "basePedal": "gfx/Muff Drive Base.png",
+  "publicHeaderFiles": [
+    "inc/TapeSaturation.h"
+  ],
+  "privateSourceFiles": [
+    "src/tape_saturation_plugin.cpp",
+    "src/tape_saturation_plugin.h",
+    "src/hysteresis/HysteresisOps.h",
+    "src/hysteresis/HysteresisProcessing.cpp",
+    "src/hysteresis/HysteresisProcessing.h",
+    "src/plugin_base/Parameters.cpp",
+    "src/plugin_base/Parameters.h",
+    "src/plugin_base/PluginBase.h",
+    "src/TapeSaturation.cpp",
+    "src/TapeSaturationBase.cpp"
+  ],
+  "modules": [
+    "modules/chowdsp_core",
+    "modules/chowdsp_data_structures",
+    "modules/chowdsp_buffers",
+    "modules/chowdsp_dsp_data_structures",
+    "modules/chowdsp_filters",
+    "modules/chowdsp_simd",
+    "modules/chowdsp_math",
+    "modules/chowdsp_dsp_utils"
+  ],
+  "settings": {
+    "showModules": true,
+    "isSingleton": false,
+    "cppDefines": "CORE_TEENSY,JUCE_MODULE_AVAILABLE_chowdsp_buffers=1,NE_PEDAL_MULTIVERSE=1"
+  }
+}

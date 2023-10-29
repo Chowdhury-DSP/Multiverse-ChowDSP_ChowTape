@@ -1,0 +1,32 @@
+message(STATUS "Configuring types_list examples")
+
+include(CheckCXXCompilerFlag)
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "GNU") OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
+    set(OPTIONS -Wall -Wextra -pedantic-errors -Werror)
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    set(OPTIONS /W4 /WX)
+    if(HAS_PERMISSIVE_FLAG)
+        set(OPTIONS ${OPTIONS} /permissive-)
+    endif()
+endif()
+
+function(make_example target)
+    add_executable(${target} ${target}.cpp)
+    set_target_properties(${target} PROPERTIES CXX_EXTENSIONS OFF)
+    target_compile_features(${target} PRIVATE cxx_std_17)
+    target_compile_options(${target} PRIVATE ${OPTIONS})
+    target_link_libraries(${target} PRIVATE ${CMAKE_PROJECT_NAME})
+    set_property(TARGET ${target} PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
+endfunction()
+
+make_example(example)
+
+option(TYPES_LIST_CONFIGURE_MP11_COMPARISON OFF)
+if(TYPES_LIST_CONFIGURE_MP11_COMPARISON)
+    add_subdirectory(../../mp11 mp11 EXCLUDE_FROM_ALL)
+    add_executable(example_mp11 example_mp11.cpp)
+    target_compile_features(example_mp11 PRIVATE cxx_std_17)
+    target_link_libraries(example_mp11 PRIVATE boost_mp11)
+    set_property(TARGET example_mp11 PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
+endif(TYPES_LIST_CONFIGURE_MP11_COMPARISON)
