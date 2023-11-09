@@ -36,6 +36,7 @@ public:
         Saturation_e = 3,
         Bias_e = 4,
         Tone_e = 5,
+        Speed_e = 6,
         NUM_CONTROLS
     };
 
@@ -64,6 +65,7 @@ public:
     void saturation(float value);
     void bias(float value);
     void tone(float value);
+    void speed(float value);
 
     //!s - START_USER_PUBLIC_MEMBERS - put your public members below this line before the matching END
     //!e - END_USER_PUBLIC_MEMBERS
@@ -77,6 +79,7 @@ private:
     float m_saturation = 0.0f;
     float m_bias = 0.0f;
     float m_tone = 0.0f;
+    float m_speed = 0.0f;
 
     audio_block_t* m_basicInputCheck(audio_block_t* inputAudioBlock, unsigned outputChannel);
 

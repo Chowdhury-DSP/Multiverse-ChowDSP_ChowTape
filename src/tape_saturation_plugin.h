@@ -4,6 +4,7 @@
 #include <plugin_base/PluginBase.h>
 
 #include "hysteresis/HysteresisProcessing.h"
+#include "tape_loss_filter.h"
 
 namespace ne_pedal::plugins::tape_saturation
 {
@@ -22,6 +23,7 @@ private:
     FloatParameter saturation_param;
     FloatParameter bias_param;
     FloatParameter tone_param;
+    FloatParameter speed_param;
     FloatParameter level_param;
 
     chowdsp::SmoothedBufferValue<float> drive_smooth;
@@ -42,6 +44,7 @@ private:
     chowdsp::ShelfFilter<float> tone_out_filter;
 
     chowdsp::FirstOrderHPF<float> dcBlocker;
+    TapeLossFilter loss_filter;
     chowdsp::Gain<float> gain_processor;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TapeSaturationPlugin)

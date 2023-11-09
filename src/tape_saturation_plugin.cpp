@@ -10,12 +10,14 @@ TapeSaturationPlugin::TapeSaturationPlugin (const clap_host* host)
       saturation_param (1, "Saturation", NormalisableRange { 0.0f, 1.0f }, 0.5f),
       bias_param (2, "Bias", NormalisableRange { 0.0f, 1.0f }, 0.5f),
       tone_param (3, "Tone", NormalisableRange { -1.0f, 1.0f }, 0.0f),
-      level_param (4, "Level", NormalisableRange { 0.0f, 1.0f }, 0.75f)
+      speed_param (4, "Speed", NormalisableRange { 0.5f, 50.0f }, 15.0f),
+      level_param (5, "Level", NormalisableRange { 0.0f, 1.0f }, 0.75f)
 {
     addParameters ({ &drive_param,
                      &saturation_param,
                      &bias_param,
                      &tone_param,
+                     &speed_param,
                      &level_param });
 }
 
@@ -52,6 +54,9 @@ void TapeSaturationPlugin::prepare (double sampleRate, uint32_t samplesPerBlock)
 
     dcBlocker.calcCoefs (16.0f, (float) sampleRate);
     dcBlocker.reset();
+
+    loss_filter.setSpeed (speed_param);
+    loss_filter.prepare (sampleRate, (int) samplesPerBlock);
 
     gain_processor.setRampDurationSeconds (0.05);
     gain_processor.prepare (ds_spec);
@@ -139,6 +144,9 @@ void TapeSaturationPlugin::processBlock (const chowdsp::BufferView<float>& buffe
     }
 
     dcBlocker.processBlock (buffer);
+
+    loss_filter.setSpeed (speed_param);
+    loss_filter.processBlock (buffer);
 
     const auto gain = juce::Decibels::decibelsToGain (48.0f * (float) level_param - 24.0f, -24.0f);
     gain_processor.setGainLinear (gain);

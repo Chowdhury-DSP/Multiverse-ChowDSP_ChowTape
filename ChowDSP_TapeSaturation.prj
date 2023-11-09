@@ -9,7 +9,7 @@
   "effectDescription": "A distortion effect based on the Electro-Harmonix Big Muff.",
   "numInputs": 1,
   "numOutputs": 1,
-  "numControls": 6,
+  "numControls": 7,
   "effectFilename": "ChowDSP_TapeSaturation.efx",
   "libraryName": "ChowDSP_TapeSaturation",
   "cppClass": "ChowDSP_TapeSaturation::TapeSaturation",
@@ -139,7 +139,28 @@
       "iconPotHeight": 110,
       "potFullRange": 1,
       "position": [
-        320,
+        176,
+        475
+      ],
+      "scalingRatio": 1.350000023841858,
+      "supressValueLabel": 1,
+      "userData": 0
+    },
+    {
+      "name": "Speed",
+      "shortName": "SPEED",
+      "description": "<description>",
+      "config": [
+        3,
+        0.0,
+        50.0,
+        15.0,
+        2.5
+      ],
+      "iconPot": "gfx/knobs.png",
+      "iconPotHeight": 110,
+      "position": [
+        445,
         475
       ],
       "scalingRatio": 1.350000023841858,
@@ -164,17 +185,19 @@
     "src/plugin_base/Parameters.h",
     "src/plugin_base/PluginBase.h",
     "src/TapeSaturation.cpp",
-    "src/TapeSaturationBase.cpp"
+    "src/TapeSaturationBase.cpp",
+    "src/tape_loss_filter.h",
+    "src/tape_loss_filter.cpp"
   ],
   "modules": [
     "modules/chowdsp_core",
     "modules/chowdsp_data_structures",
     "modules/chowdsp_buffers",
     "modules/chowdsp_dsp_data_structures",
-    "modules/chowdsp_filters",
     "modules/chowdsp_simd",
     "modules/chowdsp_math",
-    "modules/chowdsp_dsp_utils"
+    "modules/chowdsp_dsp_utils",
+    "modules/chowdsp_filters"
   ],
   "settings": {
     "showModules": true,

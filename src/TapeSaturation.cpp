@@ -22,7 +22,7 @@ namespace ChowDSP_TapeSaturation {
 
 TapeSaturation::TapeSaturation()
 : AudioStream(NUM_INPUTS, m_inputQueueArray)
-{\''
+{
     // perform any necessary class initialization here
     plugin = std::make_unique<ne_pedal::plugins::tape_saturation::TapeSaturationPlugin>();
     plugin->prepare (AUDIO_SAMPLE_RATE, AUDIO_SAMPLES_PER_BLOCK);
@@ -51,7 +51,8 @@ void TapeSaturation::update(void)
     plugin->parameters[1]->set_value(m_saturation);
     plugin->parameters[2]->set_value(m_bias);
     plugin->parameters[3]->set_value(m_tone);
-    plugin->parameters[4]->set_value(m_volume);
+    plugin->parameters[4]->set_value(m_speed);
+    plugin->parameters[5]->set_value(m_volume);
     plugin->processBlock (chowdsp::BufferView<float> { bufferf, (int) AUDIO_SAMPLES_PER_BLOCK });
 
     arm_float_to_q15(bufferf, inputAudioBlock->data, AUDIO_SAMPLES_PER_BLOCK);
@@ -88,5 +89,11 @@ void TapeSaturation::tone(float value)
 {
     // perform any necessary conversion to user variables, validation, etc.
     m_tone = value;
+}
+
+void TapeSaturation::speed(float value)
+{
+    // perform any necessary conversion to user variables, validation, etc.
+    m_speed = value;
 }
 }
