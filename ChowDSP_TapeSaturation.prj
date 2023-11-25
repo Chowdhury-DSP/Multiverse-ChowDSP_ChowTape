@@ -54,7 +54,7 @@
       "iconPotHeight": 110,
       "position": [
         176,
-        115
+        80
       ],
       "scalingRatio": 1.350000023841858,
       "supressValueLabel": 1,
@@ -76,7 +76,7 @@
       "potFullRange": 1,
       "position": [
         445,
-        115
+        80
       ],
       "scalingRatio": 1.399999976158142,
       "supressValueLabel": 1,
@@ -97,7 +97,7 @@
       "iconPotHeight": 110,
       "position": [
         176,
-        318
+        275
       ],
       "scalingRatio": 1.350000023841858,
       "supressValueLabel": 1,
@@ -118,7 +118,7 @@
       "iconPotHeight": 110,
       "position": [
         445,
-        318
+        275
       ],
       "scalingRatio": 1.350000023841858,
       "supressValueLabel": 1,
@@ -140,7 +140,7 @@
       "potFullRange": 1,
       "position": [
         176,
-        475
+        465
       ],
       "scalingRatio": 1.350000023841858,
       "supressValueLabel": 1,
@@ -161,7 +161,7 @@
       "iconPotHeight": 110,
       "position": [
         445,
-        475
+        465
       ],
       "scalingRatio": 1.350000023841858,
       "supressValueLabel": 1,
@@ -170,8 +170,8 @@
   ],
   "projectFileVersion": "1.0.0",
   "companyLogo": "gfx/ChowDSP_logo.png",
-  "pedalIcon": "gfx/Muff Drive Icon.png",
-  "basePedal": "gfx/Muff Drive Base.png",
+  "pedalIcon": "gfx/Chow Tape Icon.png",
+  "basePedal": "gfx/Chow Tape Base.png",
   "publicHeaderFiles": [
     "inc/TapeSaturation.h"
   ],
