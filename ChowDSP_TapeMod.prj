@@ -1,19 +1,19 @@
 {
   "efxFileVersion": "1.2.0",
   "company": "ChowDSP",
-  "effectName": "Tape Saturation",
+  "effectName": "Tape Modulation",
   "effectVersion": "1.0.0",
   "coreVersion": "1.1.1",
-  "effectShortName": "TS",
-  "effectCategory": "Distortion",
-  "effectDescription": "A distortion effect based on a physically-modelled reel-to-reel tape machine.",
+  "effectShortName": "TM",
+  "effectCategory": "Modulation",
+  "effectDescription": "A modulation effect based on a physically-modelled reel-to-reel tape machine.",
   "numInputs": 1,
   "numOutputs": 1,
   "numControls": 7,
-  "effectFilename": "ChowDSP_TapeSaturation.efx",
-  "libraryName": "ChowDSP_TapeSaturation",
-  "cppClass": "ChowDSP_TapeSaturation::TapeSaturation",
-  "cppInstBase": "_ChowDSP_TapeSaturation",
+  "effectFilename": "ChowDSP_TapeModulation.efx",
+  "libraryName": "ChowDSP_TapeModulation",
+  "cppClass": "ChowDSP_TapeModulation::TapeModulation",
+  "cppInstBase": "_ChowDSP_TapeModulation",
   "constructorParams": "",
   "type": 1,
   "controls": [
@@ -40,9 +40,9 @@
       "userData": 1
     },
     {
-      "name": "Volume",
-      "shortName": "VOL",
-      "description": "Sets the effect output volume.",
+      "name": "Flutter Rate",
+      "shortName": "FLTR R",
+      "description": "Sets the speed of the flutter effect.",
       "config": [
         3,
         0.0,
@@ -61,9 +61,9 @@
       "userData": 0
     },
     {
-      "name": "Drive",
-      "shortName": "DRV",
-      "description": "Controls the amount of distortion.",
+      "name": "Flutter Depth",
+      "shortName": "FLTR D",
+      "description": "Controls the depth of the flutter effect.",
       "config": [
         3,
         0.0,
@@ -83,9 +83,9 @@
       "userData": 0
     },
     {
-      "name": "Saturation",
-      "shortName": "SAT",
-      "description": "Controls the saturation amount.",
+      "name": "Wow Rate",
+      "shortName": "WOW R",
+      "description": "Controls the speed of the wow effect.",
       "config": [
         3,
         0.0,
@@ -104,9 +104,9 @@
       "userData": 0
     },
     {
-      "name": "Bias",
-      "shortName": "BIAS",
-      "description": "Controls the tape bias level.",
+      "name": "Wow Depth",
+      "shortName": "WOW D",
+      "description": "Controls the depth of the wow effect.",
       "config": [
         3,
         0.0,
@@ -125,9 +125,9 @@
       "userData": 0
     },
     {
-      "name": "Tone",
-      "shortName": "TONE",
-      "description": "Controls the \"emphasis\" filters before and after the saturation processing.",
+      "name": "Wow Variance",
+      "shortName": "WOW V",
+      "description": "Controls the variance of the wow effect.",
       "config": [
         3,
         -1.0,
@@ -147,9 +147,9 @@
       "userData": 0
     },
     {
-      "name": "Speed",
-      "shortName": "SPEED",
-      "description": "Controls the tape speed.",
+      "name": "Wow Drift",
+      "shortName": "WOW DR",
+      "description": "Controls the drift of the wow effect.",
       "config": [
         3,
         0.0,
@@ -170,24 +170,24 @@
   ],
   "projectFileVersion": "1.0.0",
   "companyLogo": "gfx/ChowDSP_logo.png",
-  "pedalIcon": "gfx/Chow Tape Icon.png",
-  "basePedal": "gfx/Chow Tape Base.png",
+  "pedalIcon": "gfx/Chow Tape MOD Icon.png",
+  "basePedal": "gfx/Chow Tape MOD Base.png",
   "publicHeaderFiles": [
-    "inc/TapeSaturation.h"
+    "inc/TapeModulation.h"
   ],
   "privateSourceFiles": [
-    "src/TapeSaturation.cpp",
-    "src/TapeSaturationBase.cpp",
-    "src/saturation/tape_loss_filter.cpp",
-    "src/saturation/tape_loss_filter.h",
-    "src/saturation/tape_saturation_plugin.cpp",
-    "src/saturation/tape_saturation_plugin.h",
-    "src/saturation/hysteresis/HysteresisOps.h",
-    "src/saturation/hysteresis/HysteresisProcessing.cpp",
-    "src/saturation/hysteresis/HysteresisProcessing.h",
+    "src/tape_saturation_plugin.cpp",
+    "src/tape_saturation_plugin.h",
+    "src/hysteresis/HysteresisOps.h",
+    "src/hysteresis/HysteresisProcessing.cpp",
+    "src/hysteresis/HysteresisProcessing.h",
     "src/plugin_base/Parameters.cpp",
     "src/plugin_base/Parameters.h",
-    "src/plugin_base/PluginBase.h"
+    "src/plugin_base/PluginBase.h",
+    "src/TapeModulation.cpp",
+    "src/TapeModulationBase.cpp",
+    "src/tape_loss_filter.h",
+    "src/tape_loss_filter.cpp"
   ],
   "modules": [
     "modules/chowdsp_core",
