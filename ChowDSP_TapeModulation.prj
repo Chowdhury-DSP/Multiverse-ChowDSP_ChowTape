@@ -15,7 +15,6 @@
   "cppClass": "ChowDSP_TapeModulation::TapeModulation",
   "cppInstBase": "_ChowDSP_TapeModulation",
   "constructorParams": "",
-  "type": 1,
   "controls": [
     {
       "name": "Bypass",

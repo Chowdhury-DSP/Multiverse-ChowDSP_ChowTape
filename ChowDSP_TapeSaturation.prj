@@ -15,7 +15,6 @@
   "cppClass": "ChowDSP_TapeSaturation::TapeSaturation",
   "cppInstBase": "_ChowDSP_TapeSaturation",
   "constructorParams": "",
-  "type": 1,
   "controls": [
     {
       "name": "Bypass",
