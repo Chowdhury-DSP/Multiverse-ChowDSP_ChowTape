@@ -201,6 +201,6 @@
   "settings": {
     "showModules": true,
     "isSingleton": false,
-    "cppDefines": "CORE_TEENSY,JUCE_MODULE_AVAILABLE_chowdsp_buffers=1,NE_PEDAL_MULTIVERSE=1"
+    "cppDefines": "CORE_TEENSY,JUCE_MODULE_AVAILABLE_chowdsp_buffers=1,NE_PEDAL_MULTIVERSE=1,CHOWDSP_BUFFER_MAX_NUM_CHANNELS=2"
   }
 }
