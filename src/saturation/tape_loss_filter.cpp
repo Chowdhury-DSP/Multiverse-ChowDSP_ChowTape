@@ -12,7 +12,6 @@ TapeLossFilter::TapeLossFilter() = default;
 void TapeLossFilter::prepare (double sampleRate, int samplesPerBlock)
 {
     fs = (float) sampleRate;
-    fadeBuffer.setMaxSize (1, samplesPerBlock);
     fadeLength = std::max (1024, samplesPerBlock);
 
     fsFactor = (float) fs / 48000.0f;
@@ -68,7 +67,6 @@ void TapeLossFilter::calcCoefs (HeadBumpFilter& filter)
 
     // compute head bump filters
     calcHeadBumpFilter (speed, gap, fs, filter);
-
 }
 
 void TapeLossFilter::calcHeadBumpFilter (float speedIps, float gapMeters, float fs, HeadBumpFilter& filter)
@@ -78,8 +76,10 @@ void TapeLossFilter::calcHeadBumpFilter (float speedIps, float gapMeters, float 
     filter.calcCoefs (bumpFreq, 2.0f, gain, fs);
 }
 
-void TapeLossFilter::processBlock (const chowdsp::BufferView<float>& buffer) noexcept
+template <typename Arena>
+void TapeLossFilter::processBlock (const chowdsp::BufferView<float>& buffer, chowdsp::ArenaAllocator<Arena>& allocator) noexcept
 {
+    const auto arena_frame = allocator.create_frame();
     const auto numSamples = buffer.getNumSamples();
 
     if ((speed != prevSpeed) && fadeCount == 0)
@@ -95,7 +95,10 @@ void TapeLossFilter::processBlock (const chowdsp::BufferView<float>& buffer) noe
 
     if (fadeCount > 0)
     {
-        fadeBuffer.setCurrentSize (1, numSamples);
+        fadeBuffer = {
+            allocator.template allocate<float> (numSamples, chowdsp::SIMDUtils::defaultSIMDAlignment),
+            numSamples,
+        };
         chowdsp::BufferMath::copyBufferData (buffer, fadeBuffer);
     }
     else
@@ -134,4 +137,6 @@ void TapeLossFilter::processBlock (const chowdsp::BufferView<float>& buffer) noe
             activeFilter = ! activeFilter;
     }
 }
+
+template void TapeLossFilter::processBlock (const chowdsp::BufferView<float>& buffer, chowdsp::ArenaAllocator<>& allocator) noexcept;
 }

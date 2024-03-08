@@ -5,7 +5,7 @@ BEGIN_JUCE_MODULE_DECLARATION
 
    ID:            chowdsp_core
    vendor:        Chowdhury DSP
-   version:       2.1.0
+   version:       2.2.0
    name:          ChowDSP Core
    description:   Core code for other ChowDSP modules
    dependencies:
@@ -98,4 +98,5 @@ namespace experimental
 #include "Functional/chowdsp_Bindings.h"
 #include "Functional/chowdsp_EndOfScopeAction.h"
 #include "Memory/chowdsp_MemoryAliasing.h"
+#include "Types/chowdsp_TypeHasCheckers.h"
 #include "Types/chowdsp_TypeTraits.h"

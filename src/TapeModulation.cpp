@@ -55,6 +55,8 @@ void TapeModulation::update(void)
     plugin->parameters[5]->set_value(m_wowdrift);
     plugin->processBlock (chowdsp::BufferView<float> { bufferf, (int) AUDIO_SAMPLES_PER_BLOCK });
 
+    arm_scale_f32 (bufferf, m_volume, bufferf, AUDIO_SAMPLES_PER_BLOCK);	
+
     arm_float_to_q15(bufferf, inputAudioBlock->data, AUDIO_SAMPLES_PER_BLOCK);
 
     m_updateOutputPeak(inputAudioBlock); // you must call m_upateOutputPeak() at the end of update() before transmit
@@ -98,5 +100,8 @@ void TapeModulation::wowdrift(float value)
     m_wowdrift = value;
 }
 
-
+void TapeModulation::volume(float value)
+{
+    m_volume = value;
+}
 }

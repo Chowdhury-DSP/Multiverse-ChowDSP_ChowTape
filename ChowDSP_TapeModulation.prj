@@ -2,19 +2,20 @@
   "efxFileVersion": "1.2.0",
   "company": "ChowDSP",
   "effectName": "Tape Modulation",
-  "effectVersion": "1.0.0",
+  "effectVersion": "1.1.0",
   "coreVersion": "1.1.1",
   "effectShortName": "TM",
   "effectCategory": "Modulation",
   "effectDescription": "A modulation effect based on a physically-modelled reel-to-reel tape machine.",
   "numInputs": 1,
   "numOutputs": 1,
-  "numControls": 7,
+  "numControls": 8,
   "effectFilename": "ChowDSP_TapeModulation.efx",
   "libraryName": "ChowDSP_TapeModulation",
   "cppClass": "ChowDSP_TapeModulation::TapeModulation",
   "cppInstBase": "_ChowDSP_TapeModulation",
   "constructorParams": "",
+  "isSingleton": false,
   "controls": [
     {
       "name": "Bypass",
@@ -27,9 +28,9 @@
         0.0,
         1.0
       ],
-      "iconOn": "gfx/Power Off.png",
+      "iconOn": "gfx\\Power Off.png",
       "iconOnHeight": 136,
-      "iconOff": "gfx/Power On.png",
+      "iconOff": "gfx\\Power On.png",
       "iconOffHeight": 136,
       "position": [
         313,
@@ -49,7 +50,7 @@
         0.5,
         0.05000000074505806
       ],
-      "iconPot": "gfx/knobs.png",
+      "iconPot": "gfx\\knobs.png",
       "iconPotHeight": 110,
       "position": [
         176,
@@ -70,7 +71,7 @@
         0.2000000029802322,
         0.05000000074505806
       ],
-      "iconPot": "gfx/knobs.png",
+      "iconPot": "gfx\\knobs.png",
       "iconPotHeight": 110,
       "potFullRange": 1,
       "position": [
@@ -92,7 +93,7 @@
         0.5,
         0.05000000074505806
       ],
-      "iconPot": "gfx/knobs.png",
+      "iconPot": "gfx\\knobs.png",
       "iconPotHeight": 110,
       "position": [
         176,
@@ -113,7 +114,7 @@
         0.5,
         0.05000000074505806
       ],
-      "iconPot": "gfx/knobs.png",
+      "iconPot": "gfx\\knobs.png",
       "iconPotHeight": 110,
       "position": [
         445,
@@ -134,7 +135,7 @@
         0.0,
         0.05000000074505806
       ],
-      "iconPot": "gfx/knobs.png",
+      "iconPot": "gfx\\knobs.png",
       "iconPotHeight": 110,
       "potFullRange": 1,
       "position": [
@@ -156,7 +157,7 @@
         0.0,
         0.05000000074505806
       ],
-      "iconPot": "gfx/knobs.png",
+      "iconPot": "gfx\\knobs.png",
       "iconPotHeight": 110,
       "potFullRange": 1,
       "position": [
@@ -166,38 +167,54 @@
       "scalingRatio": 1.350000023841858,
       "supressValueLabel": 1,
       "userData": 0
+    },
+    {
+      "name": "Volume",
+      "shortName": "VOL",
+      "description": "Sets the effect output volume.",
+      "config": [
+        3,
+        0.0,
+        1.0,
+        1.0,
+        0.05000000074505806
+      ],
+      "iconPot": "gfx\\knobs.png",
+      "iconPotHeight": 110,
+      "userData": 0
     }
   ],
   "projectFileVersion": "1.0.0",
-  "companyLogo": "gfx/ChowDSP_logo.png",
-  "pedalIcon": "gfx/Chow Tape MOD Icon.png",
-  "basePedal": "gfx/Chow Tape MOD Base.png",
+  "companyLogo": "gfx\\ChowDSP_logo.png",
+  "pedalIcon": "gfx\\Chow Tape MOD Icon.png",
+  "basePedal": "gfx\\Chow Tape MOD Base.png",
   "publicHeaderFiles": [
-    "inc/TapeModulation.h"
+    "inc\\TapeModulation.h"
   ],
   "privateSourceFiles": [
-    "src/TapeModulation.cpp",
-    "src/TapeModulationBase.cpp",
-    "src/modulation/flutter_process.cpp",
-    "src/modulation/flutter_process.h",
-    "src/modulation/oh_process.h",
-    "src/modulation/tape_mod_plugin.cpp",
-    "src/modulation/tape_mod_plugin.h",
-    "src/modulation/wow_process.cpp",
-    "src/modulation/wow_process.h",
-    "src/plugin_base/Parameters.cpp",
-    "src/plugin_base/Parameters.h",
-    "src/plugin_base/PluginBase.h"
+    "src\\TapeModulation.cpp",
+    "src\\TapeModulationBase.cpp",
+    "src\\modulation\\flutter_process.cpp",
+    "src\\modulation\\flutter_process.h",
+    "src\\modulation\\oh_process.h",
+    "src\\modulation\\tape_mod_plugin.cpp",
+    "src\\modulation\\tape_mod_plugin.h",
+    "src\\modulation\\wow_process.cpp",
+    "src\\modulation\\wow_process.h",
+    "src\\plugin_base\\Parameters.cpp",
+    "src\\plugin_base\\Parameters.h",
+    "src\\plugin_base\\PluginBase.h"
   ],
   "modules": [
-    "modules/chowdsp_core",
-    "modules/chowdsp_data_structures",
-    "modules/chowdsp_buffers",
-    "modules/chowdsp_dsp_data_structures",
-    "modules/chowdsp_simd",
-    "modules/chowdsp_math",
-    "modules/chowdsp_dsp_utils",
-    "modules/chowdsp_filters"
+    "modules\\chowdsp_core",
+    "modules\\chowdsp_data_structures",
+    "modules\\chowdsp_buffers",
+    "modules\\chowdsp_dsp_data_structures",
+    "modules\\chowdsp_simd",
+    "modules\\chowdsp_math",
+    "modules\\chowdsp_dsp_utils",
+    "modules\\chowdsp_filters",
+    "modules\\math_approx"
   ],
   "settings": {
     "showModules": true,

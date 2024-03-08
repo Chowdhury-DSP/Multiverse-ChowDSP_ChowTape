@@ -2,7 +2,7 @@
   "efxFileVersion": "1.2.0",
   "company": "ChowDSP",
   "effectName": "Tape Saturation",
-  "effectVersion": "1.0.0",
+  "effectVersion": "1.1.0",
   "coreVersion": "1.1.1",
   "effectShortName": "TS",
   "effectCategory": "Distortion",
@@ -15,6 +15,7 @@
   "cppClass": "ChowDSP_TapeSaturation::TapeSaturation",
   "cppInstBase": "_ChowDSP_TapeSaturation",
   "constructorParams": "",
+  "isSingleton": false,
   "controls": [
     {
       "name": "Bypass",
@@ -27,9 +28,9 @@
         0.0,
         1.0
       ],
-      "iconOn": "gfx/Power Off.png",
+      "iconOn": "gfx\\Power Off.png",
       "iconOnHeight": 136,
-      "iconOff": "gfx/Power On.png",
+      "iconOff": "gfx\\Power On.png",
       "iconOffHeight": 136,
       "position": [
         313,
@@ -49,7 +50,7 @@
         0.5,
         0.05000000074505806
       ],
-      "iconPot": "gfx/knobs.png",
+      "iconPot": "gfx\\knobs.png",
       "iconPotHeight": 110,
       "position": [
         176,
@@ -70,7 +71,7 @@
         0.75,
         0.05000000074505806
       ],
-      "iconPot": "gfx/knobs.png",
+      "iconPot": "gfx\\knobs.png",
       "iconPotHeight": 110,
       "potFullRange": 1,
       "position": [
@@ -92,7 +93,7 @@
         0.5,
         0.05000000074505806
       ],
-      "iconPot": "gfx/knobs.png",
+      "iconPot": "gfx\\knobs.png",
       "iconPotHeight": 110,
       "position": [
         176,
@@ -113,7 +114,7 @@
         0.5,
         0.05000000074505806
       ],
-      "iconPot": "gfx/knobs.png",
+      "iconPot": "gfx\\knobs.png",
       "iconPotHeight": 110,
       "position": [
         445,
@@ -134,7 +135,7 @@
         0.0,
         0.05000000074505806
       ],
-      "iconPot": "gfx/knobs.png",
+      "iconPot": "gfx\\knobs.png",
       "iconPotHeight": 110,
       "potFullRange": 1,
       "position": [
@@ -156,7 +157,7 @@
         15.0,
         2.5
       ],
-      "iconPot": "gfx/knobs.png",
+      "iconPot": "gfx\\knobs.png",
       "iconPotHeight": 110,
       "position": [
         445,
@@ -168,35 +169,35 @@
     }
   ],
   "projectFileVersion": "1.0.0",
-  "companyLogo": "gfx/ChowDSP_logo.png",
-  "pedalIcon": "gfx/Chow Tape Icon.png",
-  "basePedal": "gfx/Chow Tape Base.png",
+  "companyLogo": "gfx\\ChowDSP_logo.png",
+  "pedalIcon": "gfx\\Chow Tape Icon.png",
+  "basePedal": "gfx\\Chow Tape Base.png",
   "publicHeaderFiles": [
-    "inc/TapeSaturation.h"
+    "inc\\TapeSaturation.h"
   ],
   "privateSourceFiles": [
-    "src/TapeSaturation.cpp",
-    "src/TapeSaturationBase.cpp",
-    "src/saturation/tape_loss_filter.cpp",
-    "src/saturation/tape_loss_filter.h",
-    "src/saturation/tape_saturation_plugin.cpp",
-    "src/saturation/tape_saturation_plugin.h",
-    "src/saturation/hysteresis/HysteresisOps.h",
-    "src/saturation/hysteresis/HysteresisProcessing.cpp",
-    "src/saturation/hysteresis/HysteresisProcessing.h",
-    "src/plugin_base/Parameters.cpp",
-    "src/plugin_base/Parameters.h",
-    "src/plugin_base/PluginBase.h"
+    "src\\TapeSaturation.cpp",
+    "src\\TapeSaturationBase.cpp",
+    "src\\saturation\\tape_loss_filter.cpp",
+    "src\\saturation\\tape_loss_filter.h",
+    "src\\saturation\\tape_saturation_plugin.cpp",
+    "src\\saturation\\tape_saturation_plugin.h",
+    "src\\saturation\\hysteresis\\HysteresisOps.h",
+    "src\\saturation\\hysteresis\\HysteresisProcessing.cpp",
+    "src\\saturation\\hysteresis\\HysteresisProcessing.h",
+    "src\\plugin_base\\Parameters.cpp",
+    "src\\plugin_base\\Parameters.h",
+    "src\\plugin_base\\PluginBase.h"
   ],
   "modules": [
-    "modules/chowdsp_core",
-    "modules/chowdsp_data_structures",
-    "modules/chowdsp_buffers",
-    "modules/chowdsp_dsp_data_structures",
-    "modules/chowdsp_simd",
-    "modules/chowdsp_math",
-    "modules/chowdsp_dsp_utils",
-    "modules/chowdsp_filters"
+    "modules\\chowdsp_core",
+    "modules\\chowdsp_data_structures",
+    "modules\\chowdsp_buffers",
+    "modules\\chowdsp_dsp_data_structures",
+    "modules\\chowdsp_simd",
+    "modules\\chowdsp_math",
+    "modules\\chowdsp_dsp_utils",
+    "modules\\chowdsp_filters"
   ],
   "settings": {
     "showModules": true,

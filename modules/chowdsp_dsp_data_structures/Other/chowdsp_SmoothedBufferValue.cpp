@@ -12,7 +12,7 @@ void SmoothedBufferValue<FloatType, ValueSmoothingTypes>::setParameterHandle (st
 }
 
 template <typename FloatType, typename ValueSmoothingTypes>
-void SmoothedBufferValue<FloatType, ValueSmoothingTypes>::setParameterHandle ([[maybe_unused]] FloatParameter* handle)
+void SmoothedBufferValue<FloatType, ValueSmoothingTypes>::setParameterHandle ([[maybe_unused]] const FloatParameter* handle)
 {
     parameterHandle = nullptr;
 
@@ -23,10 +23,14 @@ void SmoothedBufferValue<FloatType, ValueSmoothingTypes>::setParameterHandle ([[
 }
 
 template <typename FloatType, typename ValueSmoothingTypes>
-void SmoothedBufferValue<FloatType, ValueSmoothingTypes>::prepare (double fs, int samplesPerBlock)
+void SmoothedBufferValue<FloatType, ValueSmoothingTypes>::prepare (double fs, int samplesPerBlock, bool useInternalVector)
 {
     sampleRate = fs;
-    buffer.resize ((size_t) samplesPerBlock, {});
+    if (useInternalVector)
+    {
+        buffer.resize ((size_t) samplesPerBlock, {});
+        bufferData = buffer.data();
+    }
     smoother.reset (sampleRate, rampLengthInSeconds);
 
     if (parameterHandle != nullptr)
@@ -101,7 +105,6 @@ void SmoothedBufferValue<FloatType, ValueSmoothingTypes>::process (FloatType val
     const auto mappedValue = mappingFunction (value);
     smoother.setTargetValue (mappedValue);
 
-    auto* bufferData = buffer.data();
     if (! smoother.isSmoothing())
     {
         isCurrentlySmoothing = false;

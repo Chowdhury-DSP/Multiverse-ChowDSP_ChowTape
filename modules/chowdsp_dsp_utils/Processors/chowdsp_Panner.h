@@ -25,10 +25,23 @@
 
 #pragma once
 
-#if ! JUCE_TEENSY
-
 namespace chowdsp
 {
+/** Panning rules: determine the balance of left/right channels at a given pan setting */
+enum class PanningRule
+{
+    linear, /**< regular 6 dB or linear panning rule, allows the panned sound to be
+                          perceived as having a constant level when summed to mono */
+    balanced, /**< both left and right are 1 when pan value is 0.5, with left decreasing
+                          to 0 above this value and right decreasing to 0 below it */
+    sin3dB, /**< alternate version of the regular 3 dB panning rule with a sine curve */
+    sin4p5dB, /**< alternate version of the regular 4.5 dB panning rule with a sine curve */
+    sin6dB, /**< alternate version of the regular 6 dB panning rule with a sine curve */
+    squareRoot3dB, /**< regular 3 dB or constant power panning rule, allows the panned sound
+                          to be perceived as having a constant level regardless of the pan position */
+    squareRoot4p5dB /**< regular 4.5 dB panning rule, a compromise option between 3 dB and 6 dB panning rules */
+};
+
 /**
     A processor to perform panning operations on stereo buffers.
 
@@ -39,19 +52,7 @@ class Panner
 {
 public:
     /** Panning rules: determine the balance of left/right channels at a given pan setting */
-    enum class Rule
-    {
-        linear, /**< regular 6 dB or linear panning rule, allows the panned sound to be
-                              perceived as having a constant level when summed to mono */
-        balanced, /**< both left and right are 1 when pan value is 0.5, with left decreasing
-                              to 0 above this value and right decreasing to 0 below it */
-        sin3dB, /**< alternate version of the regular 3 dB panning rule with a sine curve */
-        sin4p5dB, /**< alternate version of the regular 4.5 dB panning rule with a sine curve */
-        sin6dB, /**< alternate version of the regular 6 dB panning rule with a sine curve */
-        squareRoot3dB, /**< regular 3 dB or constant power panning rule, allows the panned sound
-                              to be perceived as having a constant level regardless of the pan position */
-        squareRoot4p5dB /**< regular 4.5 dB panning rule, a compromise option between 3 dB and 6 dB panning rules */
-    };
+    using Rule = PanningRule;
 
     //==============================================================================
     /** Constructor. */
@@ -120,6 +121,7 @@ public:
         outputBlock.getSingleChannelBlock (1).multiplyBy (rightVolume);
     }
 
+#if ! JUCE_TEENSY
     /** 
      * A function for panning single samples. This is useful if you have
      * some sort of "modulating" pan effect.
@@ -145,6 +147,9 @@ public:
     {
         return { x * leftVolume.getNextValue(), x * rightVolume.getNextValue() };
     }
+#endif
+
+    static SampleType getBoostForRule (Rule rule);
 
 private:
     //==============================================================================
@@ -158,5 +163,3 @@ private:
 };
 
 } // namespace chowdsp
-
-#endif // ! JUCE_TEENSY

@@ -5,7 +5,7 @@ BEGIN_JUCE_MODULE_DECLARATION
 
    ID:            chowdsp_math
    vendor:        Chowdhury DSP
-   version:       2.1.0
+   version:       2.2.0
    name:          ChowDSP Math Utilities
    description:   Math utilities for ChowDSP plugins
    dependencies:  chowdsp_data_structures, chowdsp_simd
@@ -37,12 +37,14 @@ JUCE_END_IGNORE_WARNINGS_GCC_LIKE
 #include "Math/chowdsp_MatrixOps.h"
 #include "Math/chowdsp_Polynomials.h"
 #include "Math/chowdsp_Power.h"
+#include "Math/chowdsp_RandomFloat.h"
 #include "Math/chowdsp_JacobiElliptic.h"
 #include "Math/chowdsp_Polylogarithm.h"
 #include "Math/chowdsp_TanhIntegrals.h"
 #include "Math/chowdsp_LogApprox.h"
 #include "Math/chowdsp_PowApprox.h"
 #include "Math/chowdsp_DecibelsApprox.h"
+#include "Math/chowdsp_TrigApprox.h"
 
 #if JUCE_MODULE_AVAILABLE_chowdsp_buffers
 #include <chowdsp_buffers/chowdsp_buffers.h>

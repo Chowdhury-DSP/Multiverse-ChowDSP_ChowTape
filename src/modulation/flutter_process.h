@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chowdsp_dsp_utils/chowdsp_dsp_utils.h>
+#include <math_approx/math_approx.hpp>
 
 namespace ne_pedal::plugins::tape_mod
 {
@@ -9,47 +10,49 @@ class FlutterProcess
 public:
     FlutterProcess() = default;
 
-    void prepare (double sampleRate, int samplesPerBlock, int numChannels);
-    void prepareBlock (float curDepth, float flutterFreq, int numSamples, int numChannels);
+    void prepare (double sampleRate, int samplesPerBlock);
 
-    inline bool shouldTurnOff() const noexcept { return depthSlew[0].getTargetValue() == depthSlewMin; }
-    inline void updatePhase (size_t ch) noexcept
+    template <typename Arena>
+    void prepareBlock (float curDepth, float flutterFreq, int numSamples, chowdsp::ArenaAllocator<Arena>& allocator);
+
+    inline bool shouldTurnOff() const noexcept { return depthSlew.getTargetValue() == depthSlewMin; }
+    inline void updatePhase() noexcept
     {
-        phase1[ch] += angleDelta1;
-        phase2[ch] += angleDelta2;
-        phase3[ch] += angleDelta3;
+        phase1 += angleDelta1;
+        phase2 += angleDelta2;
+        phase3 += angleDelta3;
     }
 
-    inline std::pair<float, float> getLFO (int n, size_t ch) noexcept
+    inline std::pair<float, float> getLFO (int n) noexcept
     {
-        updatePhase (ch);
-        flutterPtrs[ch][n] = depthSlew[ch].getNextValue()
-                             * (amp1 * std::cos (phase1[ch] + phaseOff1)
-                                + amp2 * std::cos (phase2[ch] + phaseOff2)
-                                + amp3 * std::cos (phase3[ch] + phaseOff3));
-        return std::make_pair (flutterPtrs[ch][n], dcOffset);
+        updatePhase();
+        flutterBuffer[n] = depthSlew.getNextValue()
+                             * (amp1 * math_approx::cos<5> (phase1 + phaseOff1)
+                                + amp2 * math_approx::cos<5> (phase2 + phaseOff2)
+                                + amp3 * math_approx::cos<5> (phase3 + phaseOff3));
+        return std::make_pair (flutterBuffer[n], dcOffset);
     }
 
     inline void boundPhase (size_t ch) noexcept
     {
-        while (phase1[ch] >= juce::MathConstants<float>::twoPi)
-            phase1[ch] -= juce::MathConstants<float>::twoPi;
-        while (phase2[ch] >= juce::MathConstants<float>::twoPi)
-            phase2[ch] -= juce::MathConstants<float>::twoPi;
-        while (phase2[ch] >= juce::MathConstants<float>::twoPi)
-            phase2[ch] -= juce::MathConstants<float>::twoPi;
+        while (phase1 >= juce::MathConstants<float>::twoPi)
+            phase1 -= juce::MathConstants<float>::twoPi;
+        while (phase2 >= juce::MathConstants<float>::twoPi)
+            phase2 -= juce::MathConstants<float>::twoPi;
+        while (phase2 >= juce::MathConstants<float>::twoPi)
+            phase2 -= juce::MathConstants<float>::twoPi;
     }
 
 
 private:
-    std::vector<float> phase1;
-    std::vector<float> phase2;
-    std::vector<float> phase3;
+    float phase1 {};
+    float phase2 {};
+    float phase3 {};
 
     float amp1 = 0.0f;
     float amp2 = 0.0f;
     float amp3 = 0.0f;
-    std::vector<juce::SmoothedValue<float, juce::ValueSmoothingTypes::Multiplicative>> depthSlew;
+    juce::SmoothedValue<float, juce::ValueSmoothingTypes::Multiplicative> depthSlew;
 
     float angleDelta1 = 0.0f;
     float angleDelta2 = 0.0f;
@@ -60,7 +63,7 @@ private:
     static constexpr float phaseOff2 = 13.0f * juce::MathConstants<float>::pi / 4.0f;
     static constexpr float phaseOff3 = -juce::MathConstants<float>::pi / 10.0f;
 
-    chowdsp::Buffer<float> flutterBuffer;
+    nonstd::span<float> flutterBuffer;
     float* const* flutterPtrs = nullptr;
     float fs = 48000.0f;
 

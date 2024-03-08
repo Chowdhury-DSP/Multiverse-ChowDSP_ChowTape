@@ -25,13 +25,15 @@ MAKE_CLAP_DESCRIPTION (TapeModPlugin, "org.chowdsp.tape_mod", "NE-Pedal Tape Mod
 
 void TapeModPlugin::prepare (double sampleRate, uint32_t samplesPerBlock)
 {
+    allocator.reset (samplesPerBlock * 3 * sizeof (float) + 32);
+
     fs = (float) sampleRate;
 
-    const auto numChannels = 2;
+    const auto numChannels = 1;
     const auto&& spec = juce::dsp::ProcessSpec { sampleRate, (uint32_t) samplesPerBlock, (uint32_t) numChannels };
 
-    wow_process.prepare (sampleRate, (int) samplesPerBlock, numChannels);
-    flutter_process.prepare (sampleRate, (int) samplesPerBlock, numChannels);
+    wow_process.prepare (sampleRate, (int) samplesPerBlock);
+    flutter_process.prepare (sampleRate, (int) samplesPerBlock);
 
     delay.prepare (spec);
     delay.setDelay (0.0f);
@@ -42,16 +44,16 @@ void TapeModPlugin::prepare (double sampleRate, uint32_t samplesPerBlock)
 
 void TapeModPlugin::processBlock (const chowdsp::BufferView<float>& buffer)
 {
-    const auto numChannels = buffer.getNumChannels();
+    const auto arena_frame = allocator.create_frame();
     const auto numSamples = buffer.getNumSamples();
 
     auto curDepthWow = std::pow (wow_depth_param, 3.0f);
     auto wowFreq = std::pow (4.5f, wow_rate_param) - 1.0f;
-    wow_process.prepareBlock (curDepthWow, wowFreq, wow_var_param, wow_drift_param, numSamples, numChannels);
+    wow_process.prepareBlock (curDepthWow, wowFreq, wow_var_param, wow_drift_param, numSamples, allocator);
 
     auto curDepthFlutter = std::pow (std::pow (flutter_depth_param, 3.0f) * 81.0f / 625.0f, 0.5f);
     auto flutterFreq = 0.1f * powf (1000.0f, flutter_rate_param);
-    flutter_process.prepareBlock (curDepthFlutter, flutterFreq, numSamples, numChannels);
+    flutter_process.prepareBlock (curDepthFlutter, flutterFreq, numSamples, allocator);
 
     processWetBuffer (buffer);
 
@@ -65,8 +67,8 @@ void TapeModPlugin::processWetBuffer (const chowdsp::BufferView<float>& buffer)
     {
         for (int n = 0; n < numSamples; ++n)
         {
-            auto [wowLFO, wowOffset] = wow_process.getLFO (n, ch);
-            auto [flutterLFO, flutterOffset] = flutter_process.getLFO (n, ch);
+            auto [wowLFO, wowOffset] = wow_process.getLFO (n);
+            auto [flutterLFO, flutterOffset] = flutter_process.getLFO (n);
 
             auto newLength = (wowLFO + flutterLFO + flutterOffset + wowOffset) * fs / 1000.0f;
             newLength = std::clamp (newLength, 0.0f, float (HISTORY_SIZE - 1));
@@ -76,7 +78,7 @@ void TapeModPlugin::processWetBuffer (const chowdsp::BufferView<float>& buffer)
             x[n] = delay.popSample (ch);
         }
 
-        wow_process.boundPhase (ch);
+        wow_process.boundPhase();
         flutter_process.boundPhase (ch);
     }
 }

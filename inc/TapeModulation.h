@@ -37,6 +37,7 @@ public:
         WowDepth_e = 4,
         WowVariance_e = 5,
         WowDrift_e = 6,
+        Volume_e = 7,
         NUM_CONTROLS
     };
 
@@ -66,6 +67,7 @@ public:
     void wowdepth(float value);
     void wowvariance(float value);
     void wowdrift(float value);
+    void volume(float value) override;
 
     //!s - START_USER_PUBLIC_MEMBERS - put your public members below this line before the matching END
     //!e - END_USER_PUBLIC_MEMBERS

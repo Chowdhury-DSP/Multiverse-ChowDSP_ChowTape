@@ -28,6 +28,8 @@ private:
     FloatParameter wow_var_param;
     FloatParameter wow_drift_param;
 
+    chowdsp::ArenaAllocator<> allocator;
+
     float fs = 48000.0f;
 
     WowProcess wow_process;

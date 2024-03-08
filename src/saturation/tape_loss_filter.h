@@ -13,7 +13,8 @@ public:
 
     void prepare (double sampleRate, int blockSize);
 
-    void processBlock (const chowdsp::BufferView<float>& buffer) noexcept;
+    template <typename Arena>
+    void processBlock (const chowdsp::BufferView<float>& buffer, chowdsp::ArenaAllocator<Arena>& allocator) noexcept;
 
 private:
     using HeadBumpFilter = chowdsp::PeakingFilter<float>;
@@ -26,7 +27,7 @@ private:
     int activeFilter = 0;
     int fadeCount = 0;
     int fadeLength = 1024;
-    chowdsp::Buffer<float> fadeBuffer;
+    chowdsp::BufferView<float> fadeBuffer {};
 
     float speed = 0.5f;
     float prevSpeed = 0.5f;

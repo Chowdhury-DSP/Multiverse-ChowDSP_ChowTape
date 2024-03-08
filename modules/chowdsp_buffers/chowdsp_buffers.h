@@ -5,13 +5,13 @@ BEGIN_JUCE_MODULE_DECLARATION
 
    ID:            chowdsp_buffers
    vendor:        Chowdhury DSP
-   version:       2.1.0
+   version:       2.2.0
    name:          ChowDSP DSP Audio Buffers
    description:   Audio buffers for ChowDSP plugins
    dependencies:  chowdsp_simd
 
    website:       https://ccrma.stanford.edu/~jatin/chowdsp
-   license:       GPLv3
+   license:       BSD 3-Clause
 
    END_JUCE_MODULE_DECLARATION
 

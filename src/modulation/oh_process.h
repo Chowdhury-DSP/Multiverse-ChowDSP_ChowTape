@@ -1,25 +1,7 @@
 #pragma once
 
 #include <chowdsp_dsp_utils/chowdsp_dsp_utils.h>
-
-namespace chowdsp
-{
-// borrowed from: https://audiodev.blog/random-numbers/
-struct RandomGenerator
-{
-    RandomGenerator() = default;
-    explicit RandomGenerator (uint64_t seed) : seed (seed) {}
-
-    double operator()()
-    {
-        seed = seed * 6364136223846793005ULL + 1442695040888963407ULL;
-        return double ((seed >> 11) & 0x1FFFFFFFFFFFFFULL) / 9007199254740992.0;
-    }
-
-private:
-    uint64_t seed = 161803398ULL;
-};
-} // namespace chowdsp
+#include <math_approx/math_approx.hpp>
 
 namespace ne_pedal::plugins::tape_mod
 {
@@ -33,35 +15,39 @@ class OHProcess
 public:
     OHProcess() = default;
 
-    void prepare (double sampleRate, int samplesPerBlock, int numChannels)
+    void prepare (double sampleRate, int samplesPerBlock)
     {
-        juce::dsp::ProcessSpec spec { sampleRate, (uint32_t) samplesPerBlock, (uint32_t) numChannels };
+        juce::dsp::ProcessSpec spec { sampleRate, (uint32_t) samplesPerBlock, 1 };
 
         lpf.prepare (spec);
         lpf.setCutoffFrequency (10.0f);
 
-        noiseBuffer.setMaxSize (1, samplesPerBlock);
-        rPtr = noiseBuffer.getReadPointer (0);
-
         sqrtdelta = 1.0f / std::sqrt ((float) sampleRate);
         T = 1.0f / (float) sampleRate;
 
-        y.resize ((size_t) numChannels, 0.0f);
-        y[0] = 1.0f;
+        y = 1.0f;
     }
 
-    void prepareBlock (float amtParam, int numSamples)
+    template <typename Arena>
+    void prepareBlock (float amtParam, int numSamples, chowdsp::ArenaAllocator<Arena>& allocator)
     {
-        noiseBuffer.setCurrentSize (1, numSamples);
-        noiseBuffer.clear();
+        read_span = {
+            allocator.template allocate<float> (numSamples, chowdsp::SIMDUtils::defaultSIMDAlignment),
+            static_cast<size_t> (numSamples),
+        };
 
-        for (auto& x : noiseBuffer.getWriteSpan (0))
+        for (size_t n = 0; n < read_span.size(); n += 2)
         {
             // Box-Muller transform
-            const auto radius = std::sqrt ((T) -2 * std::log (1.0f - (float) rand()));
-            const auto theta = juce::MathConstants<float>::twoPi * (float) rand();
-            const auto value = radius * std::sin (theta) / juce::MathConstants<float>::sqrt2;
-            x = (1.0f / 2.33f) * value;
+            const auto U1 = rand();
+            const auto U2 = rand();
+            const auto log_U1 = math_approx::log<4> (1.0f - U1);
+            const auto R = std::sqrt (-(log_U1 + log_U1));
+            const auto theta = juce::MathConstants<float>::twoPi * U2 - juce::MathConstants<float>::pi;
+            const auto sin_theta = math_approx::sin_mpi_pi<5> (theta);
+            const auto cos_theta = math_approx::cos_mpi_pi<5> (theta);
+            read_span[n] = R * cos_theta;
+            read_span[n + 1] = R * sin_theta;
         }
 
         amtParam = std::pow (amtParam, 1.25f);
@@ -70,25 +56,24 @@ public:
         mean = amtParam;
     }
 
-    inline float process (int n, size_t ch) noexcept
+    inline float process (int n) noexcept
     {
-        y[ch] += sqrtdelta * rPtr[n] * amt;
-        y[ch] += damping * (mean - y[ch]) * T;
-        return lpf.processSample ((int) ch, y[ch]);
+        y += sqrtdelta * read_span[n] * amt;
+        y += damping * (mean - y) * T;
+        return lpf.processSample (0, y);
     }
 
 private:
     float sqrtdelta = 1.0f / std::sqrt (48000.0f);
     float T = 1.0f / 48000.0f;
-    std::vector<float> y;
+    float y = 1.0f;
 
     float amt = 0.0f;
     float mean = 0.0f;
     float damping = 0.0f;
 
-    chowdsp::RandomGenerator rand { 123456 };
-    chowdsp::Buffer<float> noiseBuffer;
-    const float* rPtr = nullptr;
+    chowdsp::RandomFloat<float> rand { 123456 };
+    nonstd::span<float> read_span;
 
     chowdsp::NthOrderFilter<float, 2> lpf;
 

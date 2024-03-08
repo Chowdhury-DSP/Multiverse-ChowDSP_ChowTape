@@ -2,37 +2,36 @@
 
 namespace ne_pedal::plugins::tape_mod
 {
-void WowProcess::prepare (double sampleRate, int samplesPerBlock, int numChannels)
+void WowProcess::prepare (double sampleRate, int samplesPerBlock)
 {
     fs = (float) sampleRate;
 
-    depthSlew.resize ((size_t) numChannels);
-    for (auto& dSlew : depthSlew)
-    {
-        dSlew.reset (sampleRate, 0.05);
-        dSlew.setCurrentAndTargetValue (depthSlewMin);
-    }
+    depthSlew.reset (sampleRate, 0.05);
+    depthSlew.setCurrentAndTargetValue (depthSlewMin);
 
-    phase.resize ((size_t) numChannels, 0.0f);
+    phase = 0.0f;
 
     amp = 1000.0f * 1000.0f / (float) sampleRate;
-    wowBuffer.setMaxSize (numChannels, samplesPerBlock);
 
-    ohProc.prepare (sampleRate, samplesPerBlock, numChannels);
+    ohProc.prepare (sampleRate, samplesPerBlock);
 }
 
-void WowProcess::prepareBlock (float curDepth, float wowFreq, float wowVar, float wowDrift, int numSamples, int numChannels)
+template <typename Arena>
+void WowProcess::prepareBlock (float curDepth, float wowFreq, float wowVar, float wowDrift, int numSamples, chowdsp::ArenaAllocator<Arena>& allocator)
 {
-    for (auto& dSlew : depthSlew)
-        dSlew.setTargetValue (std::max (depthSlewMin, curDepth));
+    depthSlew.setTargetValue (std::max (depthSlewMin, curDepth));
 
     auto freqAdjust = wowFreq * (1.0f + std::pow ((float) driftRand(), 1.25f) * wowDrift);
     angleDelta = juce::MathConstants<float>::twoPi * freqAdjust / fs;
 
-    wowBuffer.setCurrentSize (numChannels, numSamples);
-    wowBuffer.clear();
-    wowPtrs = wowBuffer.getArrayOfWritePointers();
+    wowBuffer = {
+        allocator.template allocate<float> (numSamples, chowdsp::SIMDUtils::defaultSIMDAlignment),
+        static_cast<size_t> (numSamples),
+    };
+    std::fill (wowBuffer.begin(), wowBuffer.end(), 0.0f);
 
-    ohProc.prepareBlock (wowVar, numSamples);
+    ohProc.prepareBlock (wowVar, numSamples, allocator);
 }
-}
+
+template void WowProcess::prepareBlock (float, float, float, float, int, chowdsp::ArenaAllocator<>&);
+} // namespace ne_pedal::plugins::tape_mod

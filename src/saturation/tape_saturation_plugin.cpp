@@ -21,10 +21,12 @@ TapeSaturationPlugin::TapeSaturationPlugin (const clap_host* host)
                      &level_param });
 }
 
-MAKE_CLAP_DESCRIPTION (TapeSaturationPlugin, "org.chowdsp.plugin", "NE-Pedal Tape Saturation", "Physically modelled tape saturation effect.")
+MAKE_CLAP_DESCRIPTION (TapeSaturationPlugin, "org.chowdsp.tape_saturation", "NE-Pedal Tape Saturation", "Physically modelled tape saturation effect.")
 
 void TapeSaturationPlugin::prepare (double sampleRate, uint32_t samplesPerBlock)
 {
+    allocator.reset (samplesPerBlock * 12 * sizeof (float) + 32);
+
     fs = (float) sampleRate;
 
     const auto ds_spec = juce::dsp::ProcessSpec { sampleRate, samplesPerBlock, 1 };
@@ -34,10 +36,10 @@ void TapeSaturationPlugin::prepare (double sampleRate, uint32_t samplesPerBlock)
     tone_out_filter.prepare (ds_spec);
 
     tone_in_smooth.setRampLength (0.05);
-    tone_in_smooth.prepare (sampleRate, (int) samplesPerBlock);
+    tone_in_smooth.prepare (sampleRate, (int) samplesPerBlock, false);
 
     tone_out_smooth.setRampLength (0.05);
-    tone_out_smooth.prepare (sampleRate, (int) samplesPerBlock);
+    tone_out_smooth.prepare (sampleRate, (int) samplesPerBlock, false);
 
     upsampler.prepare (ds_spec, os_ratio);
     downsampler.prepare (os_spec, os_ratio);
@@ -46,11 +48,11 @@ void TapeSaturationPlugin::prepare (double sampleRate, uint32_t samplesPerBlock)
     hysteresis_processor.setSampleRate (os_spec.sampleRate);
 
     drive_smooth.setRampLength (0.05);
-    drive_smooth.prepare (os_spec.sampleRate, (int) os_spec.maximumBlockSize);
+    drive_smooth.prepare (os_spec.sampleRate, (int) os_spec.maximumBlockSize, false);
     sat_smooth.setRampLength (0.05);
-    sat_smooth.prepare (os_spec.sampleRate, (int) os_spec.maximumBlockSize);
+    sat_smooth.prepare (os_spec.sampleRate, (int) os_spec.maximumBlockSize, false);
     bias_smooth.setRampLength (0.05);
-    bias_smooth.prepare (os_spec.sampleRate, (int) os_spec.maximumBlockSize);
+    bias_smooth.prepare (os_spec.sampleRate, (int) os_spec.maximumBlockSize, false);
 
     dcBlocker.calcCoefs (16.0f, (float) sampleRate);
     dcBlocker.reset();
@@ -64,6 +66,7 @@ void TapeSaturationPlugin::prepare (double sampleRate, uint32_t samplesPerBlock)
 
 void TapeSaturationPlugin::processBlock (const chowdsp::BufferView<float>& buffer)
 {
+    const auto num_samples = buffer.getNumSamples();
     const auto update_tone_filter = [this] (chowdsp::ShelfFilter<float>& filter, float current_tone_param, bool is_input)
     {
         static constexpr auto tone_filter_transition_freq = 750.0f;
@@ -79,74 +82,87 @@ void TapeSaturationPlugin::processBlock (const chowdsp::BufferView<float>& buffe
         }
     };
 
-    tone_in_smooth.process ((float) tone_param, buffer.getNumSamples());
-    if (tone_in_smooth.isSmoothing())
     {
-        const auto* tone_data = tone_in_smooth.getSmoothedBuffer();
-        for (auto [n, sample] : chowdsp::enumerate (buffer.getWriteSpan (0)))
+        const auto arena_frame = allocator.create_frame();
+        tone_in_smooth.process (tone_param, num_samples, allocator);
+        if (tone_in_smooth.isSmoothing())
         {
-            update_tone_filter (tone_in_filter, tone_data[n], true);
-            sample = tone_in_filter.processSample (sample);
+            const auto* tone_data = tone_in_smooth.getSmoothedBuffer();
+            for (auto [n, sample] : chowdsp::enumerate (buffer.getWriteSpan (0)))
+            {
+                update_tone_filter (tone_in_filter, tone_data[n], true);
+                sample = tone_in_filter.processSample (sample);
+            }
+        }
+        else
+        {
+            update_tone_filter (tone_in_filter, tone_in_smooth.getCurrentValue(), true);
+            tone_in_filter.processBlock (buffer);
         }
     }
-    else
+
     {
-        update_tone_filter (tone_in_filter, tone_in_smooth.getCurrentValue(), true);
-        tone_in_filter.processBlock (buffer);
-    }
+        const auto arena_frame = allocator.create_frame();
+        const auto os_num_samples = os_ratio * num_samples;
+        const auto os_buffer = chowdsp::BufferView {
+            allocator.allocate<float> (os_num_samples, chowdsp::SIMDUtils::defaultSIMDAlignment),
+            os_num_samples,
+        };
+        upsampler.process (buffer, os_buffer);
 
-    const auto os_buffer = upsampler.process (buffer);
-
-    for (auto& sample : os_buffer.getWriteSpan (0))
-        sample = chowdsp::Math::algebraicSigmoid (sample);
-
-    drive_smooth.process ((float) drive_param, os_buffer.getNumSamples());
-    sat_smooth.process ((float) saturation_param, os_buffer.getNumSamples());
-    bias_smooth.process ((float) bias_param, os_buffer.getNumSamples());
-    if (drive_smooth.isSmoothing() || sat_smooth.isSmoothing() || bias_smooth.isSmoothing())
-    {
-        const auto* drive_data = drive_smooth.getSmoothedBuffer();
-        const auto* sat_data = sat_smooth.getSmoothedBuffer();
-        const auto* bias_data = bias_smooth.getSmoothedBuffer();
-
-        for (auto [n, sample] : chowdsp::enumerate (os_buffer.getWriteSpan (0)))
-        {
-            hysteresis_processor.cook (drive_data[n], 1.0f - bias_data[n], sat_data[n]);
-            sample = hysteresis_processor.process (sample);
-        }
-    }
-    else
-    {
-        hysteresis_processor.cook (drive_smooth.getCurrentValue(),
-                                   1.0f - bias_smooth.getCurrentValue(),
-                                   sat_smooth.getCurrentValue());
         for (auto& sample : os_buffer.getWriteSpan (0))
-            sample = hysteresis_processor.process (sample);
-    }
-    hysteresis_processor.snapToZero();
+            sample = chowdsp::Math::algebraicSigmoid (sample);
 
-    downsampler.process (os_buffer, buffer);
-
-    tone_out_smooth.process ((float) tone_param, buffer.getNumSamples());
-    if (tone_out_smooth.isSmoothing())
-    {
-        const auto* tone_data = tone_out_smooth.getSmoothedBuffer();
-        for (auto [n, sample] : chowdsp::enumerate (buffer.getWriteSpan (0)))
+        drive_smooth.process (drive_param, os_num_samples, allocator);
+        sat_smooth.process (saturation_param, os_num_samples, allocator);
+        bias_smooth.process (bias_param, os_num_samples, allocator);
+        if (drive_smooth.isSmoothing() || sat_smooth.isSmoothing() || bias_smooth.isSmoothing())
         {
-            update_tone_filter (tone_out_filter, tone_data[n], false);
-            sample = tone_out_filter.processSample (sample);
+            const auto* drive_data = drive_smooth.getSmoothedBuffer();
+            const auto* sat_data = sat_smooth.getSmoothedBuffer();
+            const auto* bias_data = bias_smooth.getSmoothedBuffer();
+
+            for (auto [n, sample] : chowdsp::enumerate (os_buffer.getWriteSpan (0)))
+            {
+                hysteresis_processor.cook (drive_data[n], 1.0f - bias_data[n], sat_data[n]);
+                sample = hysteresis_processor.process (sample);
+            }
+        }
+        else
+        {
+            hysteresis_processor.cook (drive_smooth.getCurrentValue(),
+                                       1.0f - bias_smooth.getCurrentValue(),
+                                       sat_smooth.getCurrentValue());
+            for (auto& sample : os_buffer.getWriteSpan (0))
+                sample = hysteresis_processor.process (sample);
+        }
+        hysteresis_processor.snapToZero();
+        downsampler.process (os_buffer, buffer);
+    }
+
+    {
+        const auto arena_frame = allocator.create_frame();
+        tone_out_smooth.process (tone_param, num_samples, allocator);
+        if (tone_out_smooth.isSmoothing())
+        {
+            const auto* tone_data = tone_out_smooth.getSmoothedBuffer();
+            for (auto [n, sample] : chowdsp::enumerate (buffer.getWriteSpan (0)))
+            {
+                update_tone_filter (tone_out_filter, tone_data[n], false);
+                sample = tone_out_filter.processSample (sample);
+            }
+        }
+        else
+        {
+            update_tone_filter (tone_out_filter, tone_out_smooth.getCurrentValue(), false);
+            tone_out_filter.processBlock (buffer);
         }
     }
-    else
-    {
-        update_tone_filter (tone_out_filter, tone_out_smooth.getCurrentValue(), false);
-        tone_out_filter.processBlock (buffer);
-    }
-
-    dcBlocker.processBlock (buffer);
 
     loss_filter.setSpeed (speed_param);
-    loss_filter.processBlock (buffer);
+    loss_filter.processBlock (buffer, allocator);
+
+    dcBlocker.processBlock (buffer);
 
     const auto gain = juce::Decibels::decibelsToGain (48.0f * (float) level_param - 24.0f, -24.0f);
     gain_processor.setGainLinear (gain);

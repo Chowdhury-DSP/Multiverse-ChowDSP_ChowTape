@@ -26,6 +26,8 @@ private:
     FloatParameter speed_param;
     FloatParameter level_param;
 
+    chowdsp::ArenaAllocator<> allocator;
+
     chowdsp::SmoothedBufferValue<float> drive_smooth;
     chowdsp::SmoothedBufferValue<float> sat_smooth;
     chowdsp::SmoothedBufferValue<float> bias_smooth;
@@ -35,17 +37,18 @@ private:
     float fs = 48000.0f;
 
     using AAFilter = chowdsp::EllipticFilter<8>;
-    chowdsp::Upsampler<float, AAFilter> upsampler;
+    chowdsp::Upsampler<float, AAFilter, false> upsampler;
     chowdsp::Downsampler<float, AAFilter, false> downsampler;
 
     hysteresis::HysteresisProcessing hysteresis_processor;
 
-    chowdsp::ShelfFilter<float> tone_in_filter;
-    chowdsp::ShelfFilter<float> tone_out_filter;
+    chowdsp::ShelfFilter<> tone_in_filter;
+    chowdsp::ShelfFilter<> tone_out_filter;
 
     chowdsp::FirstOrderHPF<float> dcBlocker;
-    TapeLossFilter loss_filter;
     chowdsp::Gain<float> gain_processor;
+
+    TapeLossFilter loss_filter;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TapeSaturationPlugin)
 };

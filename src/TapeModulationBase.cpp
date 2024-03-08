@@ -32,6 +32,7 @@ void TapeModulation::setParam(int paramIndex, float paramValue)
     case 4 : wowdepth( (paramValue - 0.000000) / (1.000000 - 0.000000) ); break;
     case 5 : wowvariance( (paramValue - 0.000000) / (1.000000 - 0.000000) ); break;
     case 6 : wowdrift( (paramValue - 0.000000) / (1.000000 - 0.000000) ); break;
+    case 7 : volume( (paramValue - 0.000000) / (1.000000 - 0.000000) ); break;
     default : break;
     }
 }
@@ -46,6 +47,7 @@ float TapeModulation::getUserParamValue(int paramIndex, float normalizedParamVal
     case 4 : return ( ((1.000000 - 0.000000) * normalizedParamValue) + 0.000000 ); // wowdepth
     case 5 : return ( ((1.000000 - 0.000000) * normalizedParamValue) + 0.000000 ); // wowvariance
     case 6 : return ( ((1.000000 - 0.000000) * normalizedParamValue) + 0.000000 ); // wowdrift
+    case 7 : return ( ((1.000000 - 0.000000) * normalizedParamValue) + 0.000000 ); // volume
     default : return 0.0f;
     }
 }
@@ -86,6 +88,11 @@ void TapeModulation::processMidi(int channel, int control, int value)
 
     if ((m_midiConfig[WowDrift_e][MIDI_CHANNEL] == channel) && (m_midiConfig[WowDrift_e][MIDI_CONTROL] == control)) {
         wowdrift(val);
+        return;
+    }
+
+    if ((m_midiConfig[Volume_e][MIDI_CHANNEL] == channel) && (m_midiConfig[Volume_e][MIDI_CONTROL] == control)) {
+        volume(val);
         return;
     }
 
