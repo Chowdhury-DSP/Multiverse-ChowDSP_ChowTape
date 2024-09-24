@@ -1,5 +1,9 @@
 #pragma once
 
+#if JUCE_MODULE_AVAILABLE_chowdsp_data_structures
+#include <chowdsp_data_structures/chowdsp_data_structures.h>
+#endif
+
 namespace chowdsp
 {
 /**
@@ -157,6 +161,7 @@ public:
     }
 
 #if JUCE_MODULE_AVAILABLE_juce_dsp
+    template <typename T = SampleType, std::enable_if_t<std::is_floating_point_v<T>>* = nullptr>
     BufferView (const AudioBlock<std::remove_const_t<SampleType>>& block, // NOLINT(google-explicit-constructor): we want to be able to do implicit construction
                 int sampleOffset = 0,
                 int bufferNumSamples = -1,
@@ -169,7 +174,7 @@ public:
             channelPointers[ch] = block.getChannelPointer (ch + (size_t) startChannel) + sampleOffset;
     }
 
-    template <typename T = SampleType, std::enable_if_t<std::is_const_v<T>>* = nullptr>
+    template <typename T = SampleType, std::enable_if_t<std::is_const_v<T> && std::is_floating_point_v<T>>* = nullptr>
     BufferView (const AudioBlock<const SampleType>& block, // NOLINT(google-explicit-constructor): we want to be able to do implicit construction
                 int sampleOffset = 0,
                 int bufferNumSamples = -1,
@@ -372,4 +377,18 @@ template <typename BufferType,
               std::is_same_v<BufferType, const Buffer<xsimd::batch<double>>> || (std::is_const_v<BufferType> && detail::is_static_buffer_v<std::remove_const_t<BufferType>, xsimd::batch<double>>)>>
 BufferView (BufferType&, Ts...) -> BufferView<const xsimd::batch<double>>;
 #endif // ! CHOWDSP_NO_XSIMD
+
+#if JUCE_MODULE_AVAILABLE_chowdsp_data_structures
+template <typename T>
+BufferView<T> make_temp_buffer (ArenaAllocatorView arena, int num_channels, int num_samples)
+{
+    std::array<T*, CHOWDSP_BUFFER_MAX_NUM_CHANNELS> channel_pointers {};
+    for (size_t ch = 0; ch < static_cast<size_t> (num_channels); ++ch)
+    {
+        channel_pointers[ch] = arena.allocate<T> (num_samples, SIMDUtils::defaultSIMDAlignment);
+        jassert (channel_pointers[ch] != nullptr);
+    }
+    return { channel_pointers.data(), num_channels, num_samples };
+}
+#endif
 } // namespace chowdsp

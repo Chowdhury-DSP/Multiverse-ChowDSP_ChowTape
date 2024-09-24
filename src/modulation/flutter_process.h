@@ -64,7 +64,6 @@ private:
     static constexpr float phaseOff3 = -juce::MathConstants<float>::pi / 10.0f;
 
     nonstd::span<float> flutterBuffer;
-    float* const* flutterPtrs = nullptr;
     float fs = 48000.0f;
 
     static constexpr float depthSlewMin = 0.001f;

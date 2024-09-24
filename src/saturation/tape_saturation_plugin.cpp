@@ -58,10 +58,10 @@ void TapeSaturationPlugin::prepare (double sampleRate, uint32_t samplesPerBlock)
     dcBlocker.reset();
 
     loss_filter.setSpeed (speed_param);
-    loss_filter.prepare (sampleRate, (int) samplesPerBlock);
+    loss_filter.prepare (sampleRate, (int) samplesPerBlock, allocator);
 
-    gain_processor.setRampDurationSeconds (0.05);
-    gain_processor.prepare (ds_spec);
+    gain.setRampLength (0.05);
+    gain.prepare (sampleRate, (int) samplesPerBlock, false);
 }
 
 void TapeSaturationPlugin::processBlock (const chowdsp::BufferView<float>& buffer)
@@ -164,9 +164,11 @@ void TapeSaturationPlugin::processBlock (const chowdsp::BufferView<float>& buffe
 
     dcBlocker.processBlock (buffer);
 
-    const auto gain = juce::Decibels::decibelsToGain (48.0f * (float) level_param - 24.0f, -24.0f);
-    gain_processor.setGainLinear (gain);
-    gain_processor.process (buffer);
+    const auto gain_level = juce::Decibels::decibelsToGain (48.0f * (float) level_param - 24.0f, -24.0f);
+    gain.process (gain_level, num_samples, allocator);
+    chowdsp::BufferMath::applyGainSmoothedBuffer (buffer, gain);
+
+    allocator.clear();
 
     chowdsp::BufferMath::sanitizeBuffer (buffer, 5.0f);
 }
