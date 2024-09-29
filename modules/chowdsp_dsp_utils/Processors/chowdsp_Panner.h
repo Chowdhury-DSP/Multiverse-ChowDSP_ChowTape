@@ -121,7 +121,6 @@ public:
         outputBlock.getSingleChannelBlock (1).multiplyBy (rightVolume);
     }
 
-#if ! JUCE_TEENSY
     /** 
      * A function for panning single samples. This is useful if you have
      * some sort of "modulating" pan effect.
@@ -147,7 +146,6 @@ public:
     {
         return { x * leftVolume.getNextValue(), x * rightVolume.getNextValue() };
     }
-#endif
 
     static SampleType getBoostForRule (Rule rule);
 

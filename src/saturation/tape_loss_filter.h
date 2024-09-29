@@ -11,15 +11,14 @@ public:
 
     void setSpeed (float newSpeed) { speed = std::max (newSpeed, 0.5f); }
 
-    void prepare (double sampleRate, int blockSize);
+    void prepare (double sampleRate, int blockSize, chowdsp::ArenaAllocatorView allocator);
 
-    template <typename Arena>
-    void processBlock (const chowdsp::BufferView<float>& buffer, chowdsp::ArenaAllocator<Arena>& allocator) noexcept;
+    void processBlock (const chowdsp::BufferView<float>& buffer, chowdsp::ArenaAllocatorView allocator) noexcept;
 
 private:
     using HeadBumpFilter = chowdsp::PeakingFilter<float>;
 
-    void calcCoefs (HeadBumpFilter& filter);
+    float* calcCoefs (HeadBumpFilter& filter, chowdsp::ArenaAllocatorView allocator);
     static void calcHeadBumpFilter (float speedIps, float gapMeters, float fs, HeadBumpFilter& filter);
 
     chowdsp::FIRFilter<float> filters[2];
@@ -37,7 +36,5 @@ private:
     float binWidth = fs / 100.0f;
 
     int curOrder = 0;
-    std::vector<float> currentCoefs;
-    std::vector<float> Hcoefs;
 };
 }

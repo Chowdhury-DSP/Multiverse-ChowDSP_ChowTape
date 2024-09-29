@@ -1,5 +1,8 @@
 #include "tape_mod_plugin.h"
 
+#include <chowdsp_buffers/Buffers/chowdsp_Buffer.cpp>
+template class chowdsp::Buffer<numeric::float16_t>;
+
 namespace ne_pedal::plugins::tape_mod
 {
 TapeModPlugin::TapeModPlugin (const clap_host* host)

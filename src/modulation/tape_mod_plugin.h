@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chowdsp_dsp_utils/chowdsp_dsp_utils.h>
+#include <float16_t/float16_t.hpp>
 #include <plugin_base/PluginBase.h>
 
 #include "flutter_process.h"
@@ -8,7 +9,7 @@
 
 namespace ne_pedal::plugins::tape_mod
 {
-class TapeModPlugin : public PluginBase<TapeModPlugin>
+class TapeModPlugin : public PluginBase<TapeModPlugin, 6>
 {
 public:
     explicit TapeModPlugin (const clap_host* host = nullptr);
@@ -36,7 +37,10 @@ private:
     FlutterProcess flutter_process;
 
     static constexpr int HISTORY_SIZE = 1 << 12;
-    chowdsp::DelayLine<float, chowdsp::DelayLineInterpolationTypes::Lagrange3rd> delay { HISTORY_SIZE };
+    chowdsp::DelayLine<float,
+                       chowdsp::DelayLineInterpolationTypes::Lagrange3rd,
+                       numeric::float16_t>
+        delay { HISTORY_SIZE };
     chowdsp::SVFHighpass<> dcBlocker;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TapeModPlugin)

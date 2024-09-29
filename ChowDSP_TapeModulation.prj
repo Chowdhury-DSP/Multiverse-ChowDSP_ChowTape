@@ -1,9 +1,9 @@
 {
-  "efxFileVersion": "1.2.0",
+  "efxFileVersion": "1.5.1",
   "company": "ChowDSP",
   "effectName": "Tape Modulation",
-  "effectVersion": "1.1.0",
-  "coreVersion": "1.1.1",
+  "effectVersion": "1.1.2",
+  "coreVersion": "1.5.0",
   "effectShortName": "TM",
   "effectCategory": "Modulation",
   "effectDescription": "A modulation effect based on a physically-modelled reel-to-reel tape machine.",
@@ -16,6 +16,13 @@
   "cppInstBase": "_ChowDSP_TapeModulation",
   "constructorParams": "",
   "isSingleton": false,
+  "processMidi": false,
+  "audioStreamType": 0,
+  "cpuUsage": "4.9",
+  "ram0Usage": "7.5",
+  "ram1Usage": "7.1",
+  "writableBuffers": 1,
+  "type": 1,
   "controls": [
     {
       "name": "Bypass",
@@ -214,11 +221,15 @@
     "modules\\chowdsp_math",
     "modules\\chowdsp_dsp_utils",
     "modules\\chowdsp_filters",
-    "modules\\math_approx"
+    "modules\\math_approx",
+    "modules\\float16_t"
   ],
   "settings": {
     "showModules": true,
     "isSingleton": false,
-    "cppDefines": "CORE_TEENSY,JUCE_MODULE_AVAILABLE_chowdsp_buffers=1,NE_PEDAL_MULTIVERSE=1,CHOWDSP_BUFFER_MAX_NUM_CHANNELS=2"
+    "cppDefines": "CORE_TEENSY,JUCE_MODULE_AVAILABLE_chowdsp_buffers=1,JUCE_MODULE_AVAILABLE_chowdsp_data_structures=1,NE_PEDAL_MULTIVERSE=1,CHOWDSP_BUFFER_MAX_NUM_CHANNELS=1",
+    "noWarnings": "",
+    "enableFastMath": true,
+    "enableO3": true
   }
 }

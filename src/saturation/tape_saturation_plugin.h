@@ -8,7 +8,7 @@
 
 namespace ne_pedal::plugins::tape_saturation
 {
-class TapeSaturationPlugin : public PluginBase<TapeSaturationPlugin>
+class TapeSaturationPlugin : public PluginBase<TapeSaturationPlugin, 6>
 {
 public:
     explicit TapeSaturationPlugin (const clap_host* host = nullptr);
@@ -46,7 +46,7 @@ private:
     chowdsp::ShelfFilter<> tone_out_filter;
 
     chowdsp::FirstOrderHPF<float> dcBlocker;
-    chowdsp::Gain<float> gain_processor;
+    chowdsp::SmoothedBufferValue<float> gain;
 
     TapeLossFilter loss_filter;
 

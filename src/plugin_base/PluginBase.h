@@ -1,15 +1,6 @@
 #pragma once
 
 #include "Parameters.h"
-
-#if NE_PEDAL_MULTIVERSE
-using clap_host = void;
-using clap_plugin_descriptor = chowdsp::NullType;
-using clap_log_severity = int32_t;
-#else
-#include <clap/helpers/plugin.hh>
-#endif
-
 #include <cstring>
 
 // teensy defines these things, which causes mad conflicts...
@@ -21,21 +12,33 @@ using clap_log_severity = int32_t;
 #include <chowdsp_dsp_data_structures/chowdsp_dsp_data_structures.h>
 #include <chowdsp_math/chowdsp_math.h>
 
+#if NE_PEDAL_MULTIVERSE
+using clap_host = void;
+using clap_plugin_descriptor = chowdsp::NullType;
+using clap_log_severity = int32_t;
+#else
+#include <clap/helpers/plugin.hh>
+#endif
+
 namespace ne_pedal::plugins
 {
 #if NE_PEDAL_MULTIVERSE
-using CLAPPlugin = chowdsp::NullType;
+struct CLAPPlugin
+{
+    virtual ~CLAPPlugin() = default;
+};
 #else
 static constexpr auto CLAPMisbehaviourHandler = clap::helpers::MisbehaviourHandler::Ignore;
 static constexpr auto CLAPCheckingLevel = clap::helpers::CheckingLevel::Minimal;
 using CLAPPlugin = clap::helpers::Plugin<CLAPMisbehaviourHandler, CLAPCheckingLevel>;
 #endif
 
-template <typename PluginType>
+template <typename PluginType, size_t max_num_params = 4>
 class PluginBase : public CLAPPlugin
 {
 public:
     explicit PluginBase (const clap_host* host);
+    ~PluginBase() override = default;
 
     virtual void prepare (double sampleRate, uint32_t samplesPerBlock) = 0;
     virtual void processBlock (const chowdsp::BufferView<float>& buffer) = 0;
@@ -45,12 +48,12 @@ public:
 
     void log_message (clap_log_severity severity, const std::string& message);
 
-#if NE_PEDAL_MULTIVERSE
-    std::vector<Parameter*> parameters;
-#endif
+    std::array<Parameter*, max_num_params> parameters {};
 
 private:
-#if ! NE_PEDAL_MULTIVERSE
+#if NE_PEDAL_MULTIVERSE
+    uint32_t paramsCount() const noexcept;
+#else
     /** clap plugin */
     bool activate (double sampleRate, uint32_t minFrameCount, uint32_t maxFrameCount) noexcept override;
     clap_process_status process (const clap_process* process) noexcept override;
@@ -63,40 +66,70 @@ private:
 
     /** clap params */
     bool implementsParams() const noexcept override { return true; }
-    uint32_t paramsCount() const noexcept override { return parameters.size(); }
+    uint32_t paramsCount() const noexcept override;
     bool paramsInfo (uint32_t paramIndex, clap_param_info* info) const noexcept override;
     bool paramsValue (clap_id paramId, double* value) noexcept override;
     bool paramsValueToText (clap_id paramId, double value, char* display, uint32_t size) noexcept override;
     bool paramsTextToValue (clap_id paramId, const char* display, double* value) noexcept override;
     void paramsFlush (const clap_input_events* in, const clap_output_events* out) noexcept override {}
     bool isValidParamId (clap_id paramId) const noexcept override;
-    std::vector<Parameter*> parameters;
 #endif
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginBase)
 };
 
-template <typename PluginType>
-PluginBase<PluginType>::PluginBase (const clap_host* host)
+template <typename PluginType, size_t max_num_params>
+PluginBase<PluginType, max_num_params>::PluginBase (const clap_host* host)
 #if ! NE_PEDAL_MULTIVERSE
     : clap::helpers::Plugin<CLAPMisbehaviourHandler, CLAPCheckingLevel> (&PluginType::description, host)
 #endif
 {
 }
 
-template <typename PluginType>
-void PluginBase<PluginType>::addParameter (Parameter* new_param)
+template <typename PluginType, size_t max_num_params>
+void PluginBase<PluginType, max_num_params>::addParameter (Parameter* new_param)
 {
-    parameters.push_back (new_param);
+    for (auto& param : parameters)
+    {
+        if (param == nullptr)
+        {
+            param = new_param;
+            return;
+        }
+    }
+
+    // too many parameters!
+    assert (false);
 }
-template <typename PluginType>
-void PluginBase<PluginType>::addParameters (std::initializer_list<Parameter*> new_params)
+template <typename PluginType, size_t max_num_params>
+void PluginBase<PluginType, max_num_params>::addParameters (std::initializer_list<Parameter*> new_params)
 {
-    parameters.insert (parameters.end(), new_params);
+    auto param_count = paramsCount();
+    for (auto* param : new_params)
+    {
+        if (param_count == max_num_params)
+        {
+            assert (false);
+            return;
+        }
+        parameters[param_count++] = param;
+    }
 }
 
-template <typename PluginType>
-void PluginBase<PluginType>::log_message ([[maybe_unused]] clap_log_severity severity, [[maybe_unused]] const std::string& message)
+template <typename PluginType, size_t max_num_params>
+uint32_t PluginBase<PluginType, max_num_params>::paramsCount() const noexcept
+{
+    uint32_t count = 0;
+    for (const auto* param : parameters)
+    {
+        if (param == nullptr)
+            break;
+        count++;
+    }
+    return count;
+}
+
+template <typename PluginType, size_t max_num_params>
+void PluginBase<PluginType, max_num_params>::log_message (clap_log_severity severity, const std::string& message)
 {
 #if ! NE_PEDAL_MULTIVERSE
     if (_host.canUseHostLog())
@@ -105,15 +138,15 @@ void PluginBase<PluginType>::log_message ([[maybe_unused]] clap_log_severity sev
 }
 
 #if ! NE_PEDAL_MULTIVERSE
-template <typename PluginType>
-bool PluginBase<PluginType>::activate (double sampleRate, uint32_t /*minFrameCount*/, uint32_t maxFrameCount) noexcept
+template <typename PluginType, size_t max_num_params>
+bool PluginBase<PluginType, max_num_params>::activate (double sampleRate, uint32_t /*minFrameCount*/, uint32_t maxFrameCount) noexcept
 {
     prepare (sampleRate, maxFrameCount);
     return true;
 }
 
-template <typename PluginType>
-clap_process_status PluginBase<PluginType>::process (const clap_process* process) noexcept
+template <typename PluginType, size_t max_num_params>
+clap_process_status PluginBase<PluginType, max_num_params>::process (const clap_process* process) noexcept
 {
     if (process->in_events != nullptr)
         processInputEvents (*process->in_events);
@@ -131,8 +164,8 @@ clap_process_status PluginBase<PluginType>::process (const clap_process* process
     return CLAP_PROCESS_CONTINUE;
 }
 
-template <typename PluginType>
-void PluginBase<PluginType>::processInputEvents (const clap_input_events& input_events)
+template <typename PluginType, size_t max_num_params>
+void PluginBase<PluginType, max_num_params>::processInputEvents (const clap_input_events& input_events)
 {
     auto process_event = [this] (const clap_event_header& event_header)
     {
@@ -142,13 +175,13 @@ void PluginBase<PluginType>::processInputEvents (const clap_input_events& input_
         if (event_header.type == CLAP_EVENT_PARAM_VALUE)
         {
             const auto& param_event = reinterpret_cast<const clap_event_param_value&> (event_header);
-            // assert (parameters[param_event.param_id] == param_event.cookie);
+            assert (parameters[param_event.param_id] == param_event.cookie);
             parameters[param_event.param_id]->set_value ((float) param_event.value);
         }
         else if (event_header.type == CLAP_EVENT_PARAM_MOD)
         {
             const auto& param_mod_event = reinterpret_cast<const clap_event_param_mod&> (event_header);
-            // assert (parameters[param_mod_event.param_id] == param_mod_event.cookie);
+            assert (parameters[param_mod_event.param_id] == param_mod_event.cookie);
 
             auto param = parameters[param_mod_event.param_id];
             if (param->supports_modulation())
@@ -174,8 +207,8 @@ void PluginBase<PluginType>::processInputEvents (const clap_input_events& input_
     }
 }
 
-template <typename PluginType>
-bool PluginBase<PluginType>::audioPortsInfo (uint32_t index, bool isInput, clap_audio_port_info* info) const noexcept
+template <typename PluginType, size_t max_num_params>
+bool PluginBase<PluginType, max_num_params>::audioPortsInfo (uint32_t index, bool isInput, clap_audio_port_info* info) const noexcept
 {
     auto get_port_index = [] (bool input_port)
     {
@@ -191,8 +224,8 @@ bool PluginBase<PluginType>::audioPortsInfo (uint32_t index, bool isInput, clap_
     return true;
 }
 
-template <typename PluginType>
-bool PluginBase<PluginType>::paramsInfo (uint32_t paramIndex, clap_param_info* info) const noexcept
+template <typename PluginType, size_t max_num_params>
+bool PluginBase<PluginType, max_num_params>::paramsInfo (uint32_t paramIndex, clap_param_info* info) const noexcept
 {
     if (paramIndex >= parameters.size())
         return false;
@@ -201,8 +234,8 @@ bool PluginBase<PluginType>::paramsInfo (uint32_t paramIndex, clap_param_info* i
     return true;
 }
 
-template <typename PluginType>
-bool PluginBase<PluginType>::paramsValue (clap_id paramId, double* value) noexcept
+template <typename PluginType, size_t max_num_params>
+bool PluginBase<PluginType, max_num_params>::paramsValue (clap_id paramId, double* value) noexcept
 {
     if (! isValidParamId (paramId))
         return false;
@@ -211,8 +244,8 @@ bool PluginBase<PluginType>::paramsValue (clap_id paramId, double* value) noexce
     return true;
 }
 
-template <typename PluginType>
-bool PluginBase<PluginType>::paramsValueToText (clap_id paramId, double value, char* display, uint32_t size) noexcept
+template <typename PluginType, size_t max_num_params>
+bool PluginBase<PluginType, max_num_params>::paramsValueToText (clap_id paramId, double value, char* display, uint32_t size) noexcept
 {
     if (! isValidParamId (paramId))
         return false;
@@ -226,8 +259,8 @@ bool PluginBase<PluginType>::paramsValueToText (clap_id paramId, double value, c
     return true;
 }
 
-template <typename PluginType>
-bool PluginBase<PluginType>::paramsTextToValue (clap_id paramId, const char* display, double* value) noexcept
+template <typename PluginType, size_t max_num_params>
+bool PluginBase<PluginType, max_num_params>::paramsTextToValue (clap_id paramId, const char* display, double* value) noexcept
 {
     if (! isValidParamId (paramId))
         return false;
@@ -240,10 +273,10 @@ bool PluginBase<PluginType>::paramsTextToValue (clap_id paramId, const char* dis
     return true;
 }
 
-template <typename PluginType>
-bool PluginBase<PluginType>::isValidParamId (clap_id paramId) const noexcept
+template <typename PluginType, size_t max_num_params>
+bool PluginBase<PluginType, max_num_params>::isValidParamId (clap_id paramId) const noexcept
 {
-    return paramId < parameters.size();
+    return paramId < paramsCount();
 }
 #endif // ! NE_PEDAL_MULTIVERSE
 } // namespace ne_pedal::plugins
@@ -258,7 +291,7 @@ bool PluginBase<PluginType>::isValidParamId (clap_id paramId) const noexcept
     };
 #endif
 
-#if ! JUCE_TEENSY
+#if ! (JUCE_TEENSY || NE_PEDAL_TESTS)
 #include "PluginEntry.h"
 #define EXPORT_CLAP_PLUGIN_SYMBOLS(plugin)                        \
     JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wattributes")          \

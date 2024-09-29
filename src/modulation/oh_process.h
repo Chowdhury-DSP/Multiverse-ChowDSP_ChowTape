@@ -41,7 +41,7 @@ public:
             // Box-Muller transform
             const auto U1 = rand();
             const auto U2 = rand();
-            const auto log_U1 = math_approx::log<4> (1.0f - U1);
+            const auto log_U1 = std::min (math_approx::log1p<4> (-U1), 0.0f);
             const auto R = std::sqrt (-(log_U1 + log_U1));
             const auto theta = juce::MathConstants<float>::twoPi * U2 - juce::MathConstants<float>::pi;
             const auto sin_theta = math_approx::sin_mpi_pi<5> (theta);
