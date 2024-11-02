@@ -23,10 +23,14 @@ namespace ChowDSP_TapeModulation {
 //!s - START_USER_EFFECT_TYPES - put your effect types below this line before the matching END
 //!e - END_USER_EFFECT_TYPES
 
-class TapeModulation : public AudioStream, public Aviate::AudioEffectWrapper {
+class TapeModulation : public AudioStream, public Aviate::AudioEffectFloat {
 public:
     static constexpr unsigned NUM_INPUTS  = 1;
     static constexpr unsigned NUM_OUTPUTS = 1;
+
+    // Some useful aliases
+    using AudioBlock    = audio_block_float32_t;
+    using AudioDataType = float;
 
     // List of effect control names
     enum {
@@ -54,7 +58,7 @@ public:
     // Standard EFX interface functions - do not change these declaration
     virtual void update(); // main audio processing loop function
     void mapMidiControl(int parameter, int midiCC, int midiChannel = 0) override;
-    void processMidi(int channel, int midiCC, int value) override;
+    void processMidi(int status, int data1, int data2) override;
     void setParam(int paramIndex, float paramValue) override;
     float getUserParamValue(int paramIndex, float normalizedParamValue);
     const char* getName() override;
@@ -73,10 +77,10 @@ public:
     //!e - END_USER_PUBLIC_MEMBERS
 
 private:
-    audio_block_t *m_inputQueueArray[1]; // required by AudioStream base class, array size is num inputs
+    AudioBlock *m_inputQueueArray[NUM_INPUTS]; // required by AudioStream base class
     int m_midiConfig[NUM_CONTROLS][2]; // stores the midi parameter mapping
 
-    // m_bypass and m_volume are already provided by the base class AudioEffectWrapper
+    // m_bypass and m_volume are already provided by the base class AudioEffectWrapper or AudioEffectFloat
     float m_flutterrate = 0.0f;
     float m_flutterdepth = 0.0f;
     float m_wowrate = 0.0f;
@@ -84,7 +88,7 @@ private:
     float m_wowvariance = 0.0f;
     float m_wowdrift = 0.0f;
 
-    audio_block_t* m_basicInputCheck(audio_block_t* inputAudioBlock, unsigned outputChannel);
+    audio_block_float32_t* m_basicInputCheck(audio_block_float32_t* inputAudioBlock, unsigned outputChannel);
 
     //!s - START_USER_PRIVATE_MEMBERS - put your private members below this line before the matching END
         std::unique_ptr<ne_pedal::plugins::tape_mod::TapeModPlugin> plugin;

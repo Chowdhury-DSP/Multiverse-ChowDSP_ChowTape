@@ -9,6 +9,11 @@
 #include "Aviate/LibBasicFunctions.h"
 #include "TapeModulation.h"
 
+// Some useful aliases, file scope only
+#define audioBlockReceiveReadOnly receiveReadOnlyFloat
+#define audioBlockReceiveWritable receiveWritableFloat
+#define audioBlockAllocate        allocateFloat
+
 using namespace Aviate;
 
 namespace ChowDSP_TapeModulation {
@@ -52,58 +57,16 @@ float TapeModulation::getUserParamValue(int paramIndex, float normalizedParamVal
     }
 }
 
-void TapeModulation::processMidi(int channel, int control, int value)
+void TapeModulation::processMidi(int status, int data1, int data2)
 {
-    float val = (float)value / 127.0f;
-
-    if ((m_midiConfig[Bypass_e][MIDI_CHANNEL] == channel) && (m_midiConfig[Bypass_e][MIDI_CONTROL] == control)) {
-        bypass(val);
-        return;
-    }
-
-    if ((m_midiConfig[FlutterRate_e][MIDI_CHANNEL] == channel) && (m_midiConfig[FlutterRate_e][MIDI_CONTROL] == control)) {
-        flutterrate(val);
-        return;
-    }
-
-    if ((m_midiConfig[FlutterDepth_e][MIDI_CHANNEL] == channel) && (m_midiConfig[FlutterDepth_e][MIDI_CONTROL] == control)) {
-        flutterdepth(val);
-        return;
-    }
-
-    if ((m_midiConfig[WowRate_e][MIDI_CHANNEL] == channel) && (m_midiConfig[WowRate_e][MIDI_CONTROL] == control)) {
-        wowrate(val);
-        return;
-    }
-
-    if ((m_midiConfig[WowDepth_e][MIDI_CHANNEL] == channel) && (m_midiConfig[WowDepth_e][MIDI_CONTROL] == control)) {
-        wowdepth(val);
-        return;
-    }
-
-    if ((m_midiConfig[WowVariance_e][MIDI_CHANNEL] == channel) && (m_midiConfig[WowVariance_e][MIDI_CONTROL] == control)) {
-        wowvariance(val);
-        return;
-    }
-
-    if ((m_midiConfig[WowDrift_e][MIDI_CHANNEL] == channel) && (m_midiConfig[WowDrift_e][MIDI_CONTROL] == control)) {
-        wowdrift(val);
-        return;
-    }
-
-    if ((m_midiConfig[Volume_e][MIDI_CHANNEL] == channel) && (m_midiConfig[Volume_e][MIDI_CONTROL] == control)) {
-        volume(val);
-        return;
-    }
-
 }
 
-audio_block_t* TapeModulation::m_basicInputCheck(audio_block_t* inputAudioBlock, unsigned outputChannel)
+audio_block_float32_t* TapeModulation::m_basicInputCheck(audio_block_float32_t* inputAudioBlock, unsigned outputChannel)
 {
     // Check if effect is disabled
     if (m_enable == false) {
         // do not transmit or process any audio, return as quickly as possible after releasing the inputs
-        if (inputAudioBlock) { release(inputAudioBlock); }
+        if (inputAudioBlock) { AudioStream::release(inputAudioBlock); }
         return nullptr; // disabled, no further EFX processing in update()
     }  // end of enable check
 
@@ -113,16 +76,16 @@ audio_block_t* TapeModulation::m_basicInputCheck(audio_block_t* inputAudioBlock,
         if (inputAudioBlock != nullptr) {
             // valid input, drive to outputChannel if specified
             if (outputChannel >= 0) {
-                transmit(inputAudioBlock, outputChannel); // drive to specified output
+                AudioStream::transmit(inputAudioBlock, outputChannel); // drive to specified output
             }
-            release(inputAudioBlock); // release the input block as we are done with it
+            AudioStream::release(inputAudioBlock); // release the input block as we are done with it
         } else { // invalid input block, allocate a block and drive silence if specified
             if (outputChannel >= 0) {
-                audio_block_t* silenceBlock = allocate();
+                audio_block_float32_t* silenceBlock = allocateFloat();
                 if (silenceBlock) {
                     clearAudioBlock(silenceBlock);  // create silence in the buffer
-                    transmit(silenceBlock, outputChannel);
-                    release(silenceBlock);
+                    AudioStream::transmit(silenceBlock, outputChannel);
+                    AudioStream::release(silenceBlock);
                 }
             }
         }
@@ -132,7 +95,7 @@ audio_block_t* TapeModulation::m_basicInputCheck(audio_block_t* inputAudioBlock,
     // If not disabled or bypassed, create silence if the input block is invalid then
     // return the valid audio block so update() can continue.
     if (inputAudioBlock == nullptr) {
-        inputAudioBlock = allocate();
+        inputAudioBlock = AudioStream::allocateFloat();
         if (inputAudioBlock == nullptr) { return nullptr; } // check if allocate was unsuccessful
         // else
         clearAudioBlock(inputAudioBlock);
@@ -140,9 +103,9 @@ audio_block_t* TapeModulation::m_basicInputCheck(audio_block_t* inputAudioBlock,
     return inputAudioBlock; // inputAudioBLock is valid and ready for update() processing
 }
 
-const uint8_t rblk[256] = { 0x6d, 0xd2, 0x80, 0xeb, 0x6c, 0xfc, 0xc3, 0x3b, 0xaf, 0xe5, 0xc7, 0x65, 0x4b, 0x84, 0xf9, 0xdc, 0x99, 0x7b, 0x77, 0xbe, 0x34, 0x12, 0x1e, 0x32, 0xeb, 0xb5, 0xda, 0xaa, 0x7b, 0xeb, 0xe9, 0x1f, 0x8b, 0xbb, 0xbe, 0x45, 0x7e, 0xf3, 0x0e, 0xec, 0xd4, 0x67, 0x37, 0x6a, 0xd4, 0x5b, 0x3f, 0xf0, 0x4b, 0x55, 0xf3, 0xc2, 0x9f, 0x0c, 0x74, 0xa2, 0x59, 0xc7, 0x2a, 0xd1, 0x63, 0x58, 0x25, 0x03, 0x02, 0x6b, 0xf2, 0x01, 0x96, 0xc4, 0xdd, 0x2f, 0x96, 0xe6, 0x5e, 0x73, 0xa1, 0x3f, 0x49, 0xfa, 0x60, 0xe9, 0xb6, 0x6f, 0x3c, 0x87, 0xd1, 0xe9, 0xfb, 0x1e, 0x29, 0xf8, 0xdf, 0x43, 0xf2, 0xcd, 0x15, 0x80, 0x23, 0xdc, 0x1d, 0x21, 0x0a, 0x70, 0x4f, 0x28, 0xf1, 0x0b, 0xf4, 0x02, 0x6b, 0x12, 0xa3, 0x44, 0xa3, 0x45, 0x16, 0x07, 0x56, 0x02, 0xd4, 0xf6, 0x46, 0x57, 0xc6, 0x16, 0x47, 0x96, 0xf6, 0xe6, 0x00, 0x2c, 0x07, 0xcd, 0xa6, 0x0d, 0xb4, 0x1c, 0xf8, 0x9b, 0xbc, 0x2c, 0x95, 0xa2, 0x4f, 0xbc, 0x4d, 0x80, 0xe2, 0xb9, 0x6a, 0x29, 0x28, 0x63, 0x40, 0x6f, 0x3e, 0xac, 0x05, 0x81, 0x26, 0xe0, 0xe3, 0xb1, 0x76, 0x8b, 0x4c, 0x7a, 0x51, 0x98, 0x8e, 0xc1, 0x97, 0xb6, 0xa7, 0x5b, 0x59, 0x00, 0x5a, 0xd0, 0x90, 0xdc, 0x82, 0x5e, 0x0e, 0x23, 0xa7, 0x41, 0xb4, 0x83, 0xcf, 0x32, 0xe6, 0x22, 0x96, 0x2e, 0x3c, 0x84, 0x81, 0x78, 0x7a, 0xaf, 0x90, 0xe1, 0xc3, 0x8d, 0x12, 0x47, 0x09, 0x91, 0xbd, 0x5c, 0xc8, 0x9d, 0xfe, 0xa8, 0xf4, 0x24, 0x8e, 0xd2, 0x30, 0x8c, 0x46, 0x1b, 0x40, 0xd6, 0x34, 0x2b, 0xc1, 0x80, 0xee, 0x10, 0x17, 0xaa, 0x26, 0x84, 0xa8, 0x79, 0x7f, 0x6e, 0x48, 0xb9, 0x9f, 0xac, 0xf3, 0xc6, 0x86, 0x10, 0xc2, 0xac, 0x1e, 0xa8, 0x18, 0x8d, 0x13, 0x43};
+const uint8_t rblk[256] = TEENSY_AUDIO_BLOCK;
 const uint8_t* TapeModulation::getRblk() { return rblk; }
-static constexpr char PROGMEM TapeModulation_name[] = {0x43, 0x68, 0x6f, 0x77, 0x44, 0x53, 0x50, 0x3a, 0x44, 0x3a, 0x54, 0x61, 0x70, 0x65, 0x20, 0x4d, 0x6f, 0x64, 0x75, 0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x0};
+static constexpr char PROGMEM TapeModulation_name[] = {0x43, 0x68, 0x6f, 0x77, 0x44, 0x53, 0x50, 0x3a, 0x54, 0x61, 0x70, 0x65, 0x20, 0x4d, 0x6f, 0x64, 0x75, 0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x0};
 const char* TapeModulation::getName() { return TapeModulation_name; }
 
 }

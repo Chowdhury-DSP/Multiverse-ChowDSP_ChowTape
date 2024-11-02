@@ -16,6 +16,11 @@
 #undef B2
 #include "modulation/tape_mod_plugin.h"
 
+// Some useful aliases, file scope only
+#define audioBlockReceiveReadOnly receiveReadOnlyFloat
+#define audioBlockReceiveWritable receiveWritableFloat
+#define audioBlockAllocate        allocateFloat
+
 using namespace Aviate;
 
 namespace ChowDSP_TapeModulation {
@@ -24,7 +29,7 @@ TapeModulation::TapeModulation()
 : AudioStream(NUM_INPUTS, m_inputQueueArray)
 {
     // perform any necessary class initialization here
-        plugin = std::make_unique<ne_pedal::plugins::tape_mod::TapeModPlugin>();
+    plugin = std::make_unique<ne_pedal::plugins::tape_mod::TapeModPlugin>();
     plugin->prepare (AUDIO_SAMPLE_RATE, AUDIO_SAMPLES_PER_BLOCK);
 }
 
@@ -36,7 +41,7 @@ TapeModulation::~TapeModulation()
 
 void TapeModulation::update(void)
 {
-    audio_block_t *inputAudioBlock = receiveWritable(); // get the next block of input samples
+    audio_block_float32_t *inputAudioBlock = receiveWritableFloat(); // get the next block of input samples
     inputAudioBlock = m_basicInputCheck(inputAudioBlock, 0); // check for disable mode, bypass, or invalid inputs. Transmit to channel 0 in bypass
     if (!inputAudioBlock) { return; } // no further processing for this update() call
 
@@ -44,20 +49,16 @@ void TapeModulation::update(void)
     m_updateInputPeak(inputAudioBlock);
 
     // DO AUDIO EFFECT PROCESSING
-    float bufferf[AUDIO_SAMPLES_PER_BLOCK];
-    arm_q15_to_float (inputAudioBlock->data, bufferf, AUDIO_SAMPLES_PER_BLOCK);
-
     plugin->parameters[0]->set_value(m_flutterrate);
     plugin->parameters[1]->set_value(m_flutterdepth);
     plugin->parameters[2]->set_value(m_wowrate);
     plugin->parameters[3]->set_value(m_wowdepth);
     plugin->parameters[4]->set_value(m_wowvariance);
     plugin->parameters[5]->set_value(m_wowdrift);
-    plugin->processBlock (chowdsp::BufferView<float> { bufferf, (int) AUDIO_SAMPLES_PER_BLOCK });
+    plugin->processBlock (chowdsp::BufferView<float> { inputAudioBlock->data, (int) AUDIO_SAMPLES_PER_BLOCK });
 
-    arm_scale_f32 (bufferf, m_volume, bufferf, AUDIO_SAMPLES_PER_BLOCK);	
+    arm_scale_f32 (inputAudioBlock->data, m_volume, inputAudioBlock->data, AUDIO_SAMPLES_PER_BLOCK);	
 
-    arm_float_to_q15(bufferf, inputAudioBlock->data, AUDIO_SAMPLES_PER_BLOCK);
 
     m_updateOutputPeak(inputAudioBlock); // you must call m_upateOutputPeak() at the end of update() before transmit
     transmit(inputAudioBlock);
@@ -69,37 +70,31 @@ void TapeModulation::flutterrate(float value)
     // perform any necessary conversion to user variables, validation, etc.
     m_flutterrate = value;
 }
-
 void TapeModulation::flutterdepth(float value)
 {
     // perform any necessary conversion to user variables, validation, etc.
     m_flutterdepth = value;
 }
-
 void TapeModulation::wowrate(float value)
 {
     // perform any necessary conversion to user variables, validation, etc.
     m_wowrate = value;
 }
-
 void TapeModulation::wowdepth(float value)
 {
     // perform any necessary conversion to user variables, validation, etc.
     m_wowdepth = value;
 }
-
 void TapeModulation::wowvariance(float value)
 {
     // perform any necessary conversion to user variables, validation, etc.
     m_wowvariance = value;
 }
-
 void TapeModulation::wowdrift(float value)
 {
     // perform any necessary conversion to user variables, validation, etc.
     m_wowdrift = value;
 }
-
 void TapeModulation::volume(float value)
 {
     m_volume = value;

@@ -1,28 +1,28 @@
 {
-  "efxFileVersion": "1.5.1",
+  "efxFileVersion": "1.6.1",
   "company": "ChowDSP",
   "effectName": "Tape Modulation",
   "effectVersion": "1.1.2",
-  "coreVersion": "1.5.0",
+  "coreVersion": "1.6.0",
   "effectShortName": "TM",
   "effectCategory": "Modulation",
   "effectDescription": "A modulation effect based on a physically-modelled reel-to-reel tape machine.",
   "numInputs": 1,
   "numOutputs": 1,
   "numControls": 8,
-  "effectFilename": "ChowDSP_TapeModulation.efx",
+  "effectFilename": "ChowDSP_TapeModulation_v1.1.2.efx",
   "libraryName": "ChowDSP_TapeModulation",
   "cppClass": "ChowDSP_TapeModulation::TapeModulation",
   "cppInstBase": "_ChowDSP_TapeModulation",
   "constructorParams": "",
   "isSingleton": false,
   "processMidi": false,
-  "audioStreamType": 0,
+  "isDataPak": false,
+  "audioStreamType": 1,
   "cpuUsage": "4.9",
   "ram0Usage": "7.5",
   "ram1Usage": "7.1",
   "writableBuffers": 1,
-  "type": 1,
   "controls": [
     {
       "name": "Bypass",
@@ -192,6 +192,7 @@
     }
   ],
   "projectFileVersion": "1.0.0",
+  "buildType": "1",
   "companyLogo": "gfx\\ChowDSP_logo.png",
   "pedalIcon": "gfx\\Chow Tape MOD Icon.png",
   "basePedal": "gfx\\Chow Tape MOD Base.png",
@@ -227,9 +228,12 @@
   "settings": {
     "showModules": true,
     "isSingleton": false,
-    "cppDefines": "CORE_TEENSY,JUCE_MODULE_AVAILABLE_chowdsp_buffers=1,JUCE_MODULE_AVAILABLE_chowdsp_data_structures=1,NE_PEDAL_MULTIVERSE=1,CHOWDSP_BUFFER_MAX_NUM_CHANNELS=1",
-    "noWarnings": "",
+    "processMidi": false,
+    "isDataPak": false,
+    "cppDefines": "CORE_TEENSY,JUCE_MODULE_AVAILABLE_chowdsp_buffers=1,JUCE_MODULE_AVAILABLE_chowdsp_data_structures=1,NE_PEDAL_MULTIVERSE=1,CHOWDSP_BUFFER_MAX_NUM_CHANNELS=1,CHOWDSP_SMOOTHED_BUFFER_SMALL=1,CHOWDSP_ALLOW_TEMPLATE_INSTANTIATIONS=0",
+    "noWarnings": "psabi",
     "enableFastMath": true,
-    "enableO3": true
+    "enableO3": true,
+    "audioStreamType": 1
   }
 }

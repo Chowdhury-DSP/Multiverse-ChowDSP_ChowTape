@@ -114,8 +114,8 @@ static inline Float fast_coth (Float x) noexcept
 
     // from: https://mathr.co.uk/blog/2017-09-06_approximating_hyperbolic_tangent.html
     // [7/6]: x*(135135+17325*x**2+378*x**4+x**6)/(135135+62370*x**2+3150*x**4+28*x**6)
-    const auto tanh_numerator = x * estrin<3> ({ 1.0, 378.0, 17325.0, 135135.0 }, x_sq);
-    const auto tanh_denominator = estrin<3> ({ 28.0, 3150.0, 62370.0, 135135.0 }, x_sq);
+    const auto tanh_numerator = x * estrin<3> (Polynomial<float, 3> { { 1.0, 378.0, 17325.0, 135135.0 } }, x_sq);
+    const auto tanh_denominator = estrin<3> (Polynomial<float, 3> { { 28.0, 3150.0, 62370.0, 135135.0 } }, x_sq);
 
     // coth is the reciprocal of tanh
     return tanh_denominator / tanh_numerator;

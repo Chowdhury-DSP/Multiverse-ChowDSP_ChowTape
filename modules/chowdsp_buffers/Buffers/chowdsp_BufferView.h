@@ -246,7 +246,7 @@ private:
     std::enable_if_t<! std::is_const_v<T>, void> initialise (SampleType* const* data, int sampleOffset, int startChannel = 0)
     {
         jassert (juce::isPositiveAndNotGreaterThan (numChannels, maxNumChannels));
-        jassert (numSamples > 0);
+        jassert (numSamples >= 0);
         for (size_t ch = 0; ch < (size_t) numChannels; ++ch)
             channelPointers[ch] = data[ch + (size_t) startChannel] + sampleOffset;
     }
@@ -255,7 +255,7 @@ private:
     std::enable_if_t<std::is_const_v<T>, void> initialise (const SampleType* const* data, int sampleOffset, int startChannel = 0)
     {
         jassert (juce::isPositiveAndNotGreaterThan (numChannels, maxNumChannels));
-        jassert (numSamples > 0);
+        jassert (numSamples >= 0);
         for (size_t ch = 0; ch < (size_t) numChannels; ++ch)
             channelPointers[ch] = data[ch + (size_t) startChannel] + sampleOffset;
     }
@@ -382,10 +382,17 @@ BufferView (BufferType&, Ts...) -> BufferView<const xsimd::batch<double>>;
 template <typename T>
 BufferView<T> make_temp_buffer (ArenaAllocatorView arena, int num_channels, int num_samples)
 {
+    int num_samples_padded = num_samples;
+#if ! CHOWDSP_NO_XSIMD
+    static constexpr auto vec_size = (int) xsimd::batch<T>::size;
+    if constexpr (std::is_floating_point_v<T>)
+        num_samples_padded = buffers_detail::ceiling_divide (num_samples, vec_size) * vec_size;
+#endif
+
     std::array<T*, CHOWDSP_BUFFER_MAX_NUM_CHANNELS> channel_pointers {};
     for (size_t ch = 0; ch < static_cast<size_t> (num_channels); ++ch)
     {
-        channel_pointers[ch] = arena.allocate<T> (num_samples, SIMDUtils::defaultSIMDAlignment);
+        channel_pointers[ch] = arena.allocate<T> (num_samples_padded, SIMDUtils::defaultSIMDAlignment);
         jassert (channel_pointers[ch] != nullptr);
     }
     return { channel_pointers.data(), num_channels, num_samples };

@@ -174,4 +174,19 @@ void TapeSaturationPlugin::processBlock (const chowdsp::BufferView<float>& buffe
 }
 } // namespace ne_pedal::plugins::tape_saturation
 
+#if NE_PEDAL_MULTIVERSE || NE_PEDAL_STRATUS
+#include <chowdsp_core/JUCEHelpers/juce_FloatVectorOperations.cpp>
+template void chowdsp_juce::detail::FloatVectorOperationsBase<float, int>::multiply(float*, float, int);
+
+#include <chowdsp_math/Math/chowdsp_FloatVectorOperations.cpp>
+template int chowdsp::FloatVectorOperations::countInfsAndNaNs (const float* src, int numValues) noexcept;
+template float chowdsp::FloatVectorOperations::findAbsoluteMaximum (const float* src, int numValues) noexcept;
+
+#include <chowdsp_dsp_data_structures/Other/chowdsp_SmoothedBufferValue.cpp>
+template class chowdsp::SmoothedBufferValue<float, juce::ValueSmoothingTypes::Linear>;
+
+#include <chowdsp_filters/Other/chowdsp_FIRFilter.cpp>
+template class chowdsp::FIRFilter<float>;
+#endif
+
 EXPORT_CLAP_PLUGIN_SYMBOLS (tape_saturation::TapeSaturationPlugin)
