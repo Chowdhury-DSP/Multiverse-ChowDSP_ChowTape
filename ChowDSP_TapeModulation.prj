@@ -230,7 +230,7 @@
     "isSingleton": false,
     "processMidi": false,
     "isDataPak": false,
-    "cppDefines": "CORE_TEENSY,JUCE_MODULE_AVAILABLE_chowdsp_buffers=1,JUCE_MODULE_AVAILABLE_chowdsp_data_structures=1,NE_PEDAL_MULTIVERSE=1,CHOWDSP_BUFFER_MAX_NUM_CHANNELS=1,CHOWDSP_SMOOTHED_BUFFER_SMALL=1,CHOWDSP_ALLOW_TEMPLATE_INSTANTIATIONS=0",
+    "cppDefines": "CORE_TEENSY,JUCE_MODULE_AVAILABLE_chowdsp_buffers=1,JUCE_MODULE_AVAILABLE_chowdsp_data_structures=1,NE_PEDAL_MULTIVERSE=1,CHOWDSP_BUFFER_MAX_NUM_CHANNELS=1,CHOWDSP_SMOOTHED_BUFFER_SMALL=1,NE_PEDAL_NAMESPACE=ne_pedal_tape_mod,chowdsp=chowdsp_ne_pedal_tape_mod",
     "noWarnings": "psabi",
     "enableFastMath": true,
     "enableO3": true,
